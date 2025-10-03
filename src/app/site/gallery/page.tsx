@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import ContentTransition from '@/components/ContentTransition';
-import GalleryModal from '@/components/GalleryModal';
+import ImageModal from '@/components/ImageModal';
 
 interface Artwork {
   id: string;
@@ -20,6 +20,7 @@ export default function GalleryPage() {
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     const fetchArtworks = async () => {
@@ -65,6 +66,16 @@ export default function GalleryPage() {
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+  };
+
+  const handleOpenModal = (artwork: Artwork) => {
+    setSelectedArtwork(artwork);
+    setCurrentImageIndex(0);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedArtwork(null);
+    setCurrentImageIndex(0);
   };
 
   return (
@@ -146,7 +157,7 @@ export default function GalleryPage() {
                         {groupedArtworks[year].map((artwork) => (
                           <button
                             key={artwork.id}
-                            onClick={() => setSelectedArtwork(artwork)}
+                            onClick={() => handleOpenModal(artwork)}
                             className="group cursor-pointer bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl text-left"
                           >
                             <div className="relative aspect-square">
@@ -185,10 +196,23 @@ export default function GalleryPage() {
       {/* Footer Space */}
       <div className="h-16"></div>
 
-      {/* Gallery Modal */}
-      <GalleryModal 
-        artwork={selectedArtwork} 
-        onClose={() => setSelectedArtwork(null)} 
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedArtwork}
+        images={selectedArtwork ? [selectedArtwork.originalImage] : []}
+        currentIndex={currentImageIndex}
+        title={selectedArtwork?.title || ''}
+        subtitle={
+          selectedArtwork
+            ? new Date(selectedArtwork.date).toLocaleDateString('ko-KR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+              })
+            : ''
+        }
+        description={selectedArtwork?.description}
+        onClose={handleCloseModal}
       />
     </main>
   );
