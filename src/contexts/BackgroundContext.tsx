@@ -1,56 +1,74 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useMemo, ReactNode } from 'react';
-import siteConfig from '@/data/site-config.json';
-import { getS3ImageUrl } from '@/lib/s3';
 
 interface BackgroundContextType {
   backgroundImageUrl: string;
   isImageLoaded: boolean;
   isLoading: boolean;
+  refreshBackground: () => void;
 }
 
 const BackgroundContext = createContext<BackgroundContextType | undefined>(undefined);
 
-export function BackgroundProvider({ children }: { children: ReactNode }) {
+export function BackgroundProvider({ children }: Readonly<{ children: ReactNode }>) {
   const [backgroundImageUrl, setBackgroundImageUrl] = useState<string>('');
   const [isImageLoaded, setIsImageLoaded] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [cacheKey, setCacheKey] = useState<number>(Date.now());
 
   useEffect(() => {
-    // 이미 로드된 경우 다시 로드하지 않음
-    if (backgroundImageUrl && isImageLoaded) {
-      setIsLoading(false);
-      return;
-    }
-
-    const loadBackgroundImage = () => {
-      const basePath = siteConfig.featuredBackground?.image || 'Home/Background/background';
-      const imageUrl = getS3ImageUrl(`${basePath}`);
+    const loadBackgroundImage = async () => {
+      setIsLoading(true);
       
-      // 즉시 URL 설정 (캐시된 이미지의 경우 즉시 표시)
-      setBackgroundImageUrl(imageUrl);
-      setIsImageLoaded(true);
-      setIsLoading(false);
-      
-      // 백그라운드에서 프리로딩
-      const img = new Image();
-      img.onload = () => {
-        console.log('Background image preloaded successfully');
-      };
-      img.onerror = () => {
-        console.warn('Failed to preload background image');
-      };
-      img.src = imageUrl;
+      try {
+        // API를 통해 Background 폴더의 첫 번째 파일 가져오기
+        const response = await fetch(`/api/background?v=${cacheKey}`);
+        const data = await response.json();
+        
+        if (data.success && data.imageUrl) {
+          const imageUrl = `${data.imageUrl}?v=${cacheKey}`;
+          setBackgroundImageUrl(imageUrl);
+          
+          // 프리로딩
+          const img = new Image();
+          img.onload = () => {
+            console.log('Background image loaded successfully');
+            setIsImageLoaded(true);
+            setIsLoading(false);
+          };
+          img.onerror = () => {
+            console.warn('Failed to load background image');
+            setIsImageLoaded(false);
+            setIsLoading(false);
+          };
+          img.src = imageUrl;
+        } else {
+          console.warn('No background image found');
+          setIsImageLoaded(false);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Failed to fetch background:', error);
+        setIsImageLoaded(false);
+        setIsLoading(false);
+      }
     };
 
     loadBackgroundImage();
-  }, [backgroundImageUrl, isImageLoaded]);
+  }, [cacheKey]);
+
+  const refreshBackground = () => {
+    console.log('Refreshing background image...');
+    setCacheKey(Date.now());
+    setIsImageLoaded(false);
+  };
 
   const contextValue = useMemo(() => ({
     backgroundImageUrl,
     isImageLoaded,
-    isLoading
+    isLoading,
+    refreshBackground
   }), [backgroundImageUrl, isImageLoaded, isLoading]);
 
   return (

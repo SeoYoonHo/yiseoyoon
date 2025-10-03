@@ -7,17 +7,17 @@ export default function NavBar() {
   const pathname = usePathname();
 
   const navItems = [
-    { href: '/', label: 'Home' },
-    { href: '/gallery', label: 'Gallery' },
-    { href: '/exhibitions', label: 'Exhibitions' },
-    { href: '/text', label: 'Text' },
-    { href: '/about', label: 'About' },
-    { href: '/contact', label: 'Contact' },
+    { href: '/site/home', label: 'Home' },
+    { href: '/site/gallery', label: 'Gallery' },
+    { href: '/site/exhibitions', label: 'Exhibitions' },
+    { href: '/site/text', label: 'Text' },
+    { href: '/site/about', label: 'About' },
+    { href: '/site/contact', label: 'Contact' },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/') {
-      return pathname === '/';
+    if (href === '/site/home') {
+      return pathname === '/site/home' || pathname === '/';
     }
     return pathname.startsWith(href);
   };
@@ -27,7 +27,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex justify-between items-center h-20">
           <Link 
-            href="/"
+            href="/site/home"
             className="text-2xl font-bold text-white hover:text-gray-200 transition-colors drop-shadow-md"
           >
             yiseoyoon
@@ -58,10 +58,20 @@ export default function NavBar() {
                 </svg>
               </a>
               
-              {/* Admin Link - Only show on admin page */}
+              {/* Admin Link - Only show on site pages */}
+              {pathname.startsWith('/site') && (
+                <Link
+                  href="/admin/home"
+                  className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                >
+                  Admin
+                </Link>
+              )}
+              
+              {/* Back to Site Link - Only show on admin page */}
               {pathname.startsWith('/admin') && (
                 <Link
-                  href="/"
+                  href="/site/home"
                   className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                 >
                   ← Back to Site
