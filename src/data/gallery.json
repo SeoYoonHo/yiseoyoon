@@ -1,0 +1,52 @@
+{
+  "artworks": [
+    {
+      "id": "artwork-01",
+      "title": "봄의 시작",
+      "description": "봄이 시작되는 순간의 따뜻함을 담은 작품입니다.",
+      "image": "/images/gallery/spring-start.jpg",
+      "year": "2024",
+      "medium": "캔버스에 유화"
+    },
+    {
+      "id": "artwork-02",
+      "title": "바다의 노래",
+      "description": "파도 소리를 색채로 표현한 추상 작품입니다.",
+      "image": "/images/gallery/ocean-song.jpg",
+      "year": "2024",
+      "medium": "캔버스에 아크릴"
+    },
+    {
+      "id": "artwork-03",
+      "title": "도시의 밤",
+      "description": "도시 야경의 신비로운 빛을 담았습니다.",
+      "image": "/images/gallery/city-night.jpg",
+      "year": "2023",
+      "medium": "캔버스에 유화"
+    },
+    {
+      "id": "artwork-04",
+      "title": "꽃피는 계절",
+      "description": "봄꽃들의 생명력을 표현한 작품입니다.",
+      "image": "/images/gallery/flowering-season.jpg",
+      "year": "2023",
+      "medium": "캔버스에 수채화"
+    },
+    {
+      "id": "artwork-05",
+      "title": "산의 정기",
+      "description": "산의 웅장함과 평화로움을 담았습니다.",
+      "image": "/images/gallery/mountain-spirit.jpg",
+      "year": "2023",
+      "medium": "캔버스에 유화"
+    },
+    {
+      "id": "artwork-06",
+      "title": "일상의 발견",
+      "description": "평범한 일상 속에서 발견한 아름다움입니다.",
+      "image": "/images/gallery/daily-discovery.jpg",
+      "year": "2022",
+      "medium": "캔버스에 아크릴"
+    }
+  ]
+}

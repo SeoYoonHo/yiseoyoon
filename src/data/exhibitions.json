@@ -1,0 +1,94 @@
+{
+  "exhibitions": [
+    {
+      "id": "exhibition-01",
+      "title": "2024 개인전 \"색채의 이야기\"",
+      "period": "2024년 3월 15일 - 4월 15일",
+      "location": "서울 갤러리",
+      "description": "자연의 아름다움을 색채로 표현한 작품들을 통해 감성적인 여행을 떠나보세요.",
+      "poster": "/images/exhibitions/color-story-poster.jpg",
+      "artworks": [
+        {
+          "id": "ex-artwork-01",
+          "title": "색채의 이야기 1",
+          "image": "/images/exhibitions/color-story-01.jpg"
+        },
+        {
+          "id": "ex-artwork-02",
+          "title": "색채의 이야기 2",
+          "image": "/images/exhibitions/color-story-02.jpg"
+        },
+        {
+          "id": "ex-artwork-03",
+          "title": "색채의 이야기 3",
+          "image": "/images/exhibitions/color-story-03.jpg"
+        },
+        {
+          "id": "ex-artwork-04",
+          "title": "색채의 이야기 4",
+          "image": "/images/exhibitions/color-story-04.jpg"
+        }
+      ]
+    },
+    {
+      "id": "exhibition-02",
+      "title": "2023 그룹전 \"현대 미술의 흐름\"",
+      "period": "2023년 9월 1일 - 9월 30일",
+      "location": "부산 현대미술관",
+      "description": "현대 미술의 다양한 흐름을 탐구하는 작품들을 선보였습니다.",
+      "poster": "/images/exhibitions/modern-art-flow-poster.jpg",
+      "artworks": [
+        {
+          "id": "ex-artwork-05",
+          "title": "현대 미술의 흐름 1",
+          "image": "/images/exhibitions/modern-art-flow-01.jpg"
+        },
+        {
+          "id": "ex-artwork-06",
+          "title": "현대 미술의 흐름 2",
+          "image": "/images/exhibitions/modern-art-flow-02.jpg"
+        },
+        {
+          "id": "ex-artwork-07",
+          "title": "현대 미술의 흐름 3",
+          "image": "/images/exhibitions/modern-art-flow-03.jpg"
+        },
+        {
+          "id": "ex-artwork-08",
+          "title": "현대 미술의 흐름 4",
+          "image": "/images/exhibitions/modern-art-flow-04.jpg"
+        }
+      ]
+    },
+    {
+      "id": "exhibition-03",
+      "title": "2023 개인전 \"일상의 발견\"",
+      "period": "2023년 5월 10일 - 6월 10일",
+      "location": "대전 문화센터",
+      "description": "평범한 일상 속에서 발견하는 아름다움과 감동을 담은 작품들입니다.",
+      "poster": "/images/exhibitions/daily-discovery-poster.jpg",
+      "artworks": [
+        {
+          "id": "ex-artwork-09",
+          "title": "일상의 발견 1",
+          "image": "/images/exhibitions/daily-discovery-01.jpg"
+        },
+        {
+          "id": "ex-artwork-10",
+          "title": "일상의 발견 2",
+          "image": "/images/exhibitions/daily-discovery-02.jpg"
+        },
+        {
+          "id": "ex-artwork-11",
+          "title": "일상의 발견 3",
+          "image": "/images/exhibitions/daily-discovery-03.jpg"
+        },
+        {
+          "id": "ex-artwork-12",
+          "title": "일상의 발견 4",
+          "image": "/images/exhibitions/daily-discovery-04.jpg"
+        }
+      ]
+    }
+  ]
+}
