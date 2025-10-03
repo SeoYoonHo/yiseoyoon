@@ -22,7 +22,15 @@ export async function POST(request: NextRequest) {
     }
 
     // 파일명을 제목 기반으로 생성 (공백을 언더스코어로 변경)
-    const safeFilename = title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_가-힣]/g, '');
+    // 한글 완성형(가-힣), 영문, 숫자, 언더스코어, 하이픈만 허용
+    let safeFilename = title.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_가-힣-]/g, '');
+    
+    // 빈 문자열이거나 너무 짧은 경우 타임스탬프 사용
+    if (!safeFilename || safeFilename.length < 1) {
+      safeFilename = `artwork_${Date.now()}`;
+      console.warn('Title resulted in empty filename, using timestamp:', safeFilename);
+    }
+    
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const originalKey = `Gallery/${safeFilename}.${fileExtension}`;
     const thumbnailKey = `Gallery/Thumbnail/${safeFilename}_thumb.jpg`;
