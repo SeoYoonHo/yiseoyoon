@@ -58,10 +58,10 @@ export default function NavBar() {
                 </svg>
               </a>
               
-              {/* Admin Link - Only show on site pages */}
+              {/* Admin Link - Only show on site pages, go to corresponding admin page */}
               {pathname.startsWith('/site') && (
                 <Link
-                  href="/admin/home"
+                  href={pathname.replace('/site', '/admin')}
                   className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
                 >
                   Admin

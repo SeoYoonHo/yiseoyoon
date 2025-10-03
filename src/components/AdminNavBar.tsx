@@ -41,10 +41,10 @@ export default function AdminNavBar() {
             ))}
           </div>
 
-          {/* 사이트 보기 버튼 */}
+          {/* 사이트 보기 버튼 - 현재 어드민 페이지에 맞는 사이트 페이지로 이동 */}
           <div className="flex items-center">
             <Link
-              href="/site/home"
+              href={pathname.replace('/admin', '/site')}
               className="bg-white text-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-all"
             >
               View Site
