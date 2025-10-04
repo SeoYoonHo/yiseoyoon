@@ -95,55 +95,56 @@ export default function ExhibitionsPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="w-full py-6 sm:py-8 lg:py-12">
             {isLoading && (
-              <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                 <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                  <p className="mt-4 text-white/80">전시 목록을 불러오는 중...</p>
+                  <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-white"></div>
+                  <p className="mt-3 sm:mt-4 text-sm sm:text-base text-white/80">전시 목록을 불러오는 중...</p>
                 </div>
               </div>
             )}
 
             {!isLoading && error && (
-              <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                 <div className="text-center text-white/80">
-                  <p className="text-xl">{error}</p>
+                  <p className="text-lg sm:text-xl">{error}</p>
                 </div>
               </div>
             )}
 
             {!isLoading && !error && exhibitions.length === 0 && (
-              <div className="flex items-center justify-center min-h-[400px]">
+              <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
                 <div className="text-center text-white/80">
-                  <h2 className="text-2xl font-semibold mb-2">아직 등록된 전시가 없습니다</h2>
-                  <p className="text-lg opacity-75">곧 멋진 전시들로 채워질 예정입니다.</p>
+                  <h2 className="text-xl sm:text-2xl font-semibold mb-2">아직 등록된 전시가 없습니다</h2>
+                  <p className="text-base sm:text-lg opacity-75">곧 멋진 전시들로 채워질 예정입니다.</p>
                 </div>
               </div>
             )}
 
             {!isLoading && !error && exhibitions.length > 0 && (
-              <div className="space-y-12">
+              <div className="space-y-8 sm:space-y-12">
                 {sortedYears.map((year) => (
                   <div key={year}>
-                    {/* 연도 헤더 */}
-                    <div className="flex items-center mb-8">
-                      <div className="w-4 h-4 rounded-full bg-white/40 mr-4"></div>
-                      <h2 className="text-3xl font-bold text-white">{year}</h2>
-                      <div className="flex-1 h-px bg-white/20 ml-6"></div>
-                    </div>
+                    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+                      {/* 연도 헤더 */}
+                      <div className="flex items-center mb-6 sm:mb-8">
+                        <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white/40 mr-3 sm:mr-4"></div>
+                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{year}</h2>
+                        <div className="flex-1 h-px bg-white/20 ml-4 sm:ml-6"></div>
+                      </div>
 
-                    {/* 해당 연도의 전시들 - 세로로 배치 */}
-                    <div className="space-y-8 pl-6 pr-6">
+                      {/* 해당 연도의 전시들 - 세로로 배치 */}
+                      <div className="space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12">
                         {groupedExhibitions[year].map((exhibition) => (
                           <div 
                             key={exhibition.id} 
-                            className="bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden"
+                            className="w-full h-[28rem] bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden"
                           >
                             {/* 슬라이드 갤러리 */}
                             {exhibition.photos.length > 0 && (
-                              <div className="mb-4">
-                                <div className="relative w-full aspect-video bg-white/5 rounded-lg overflow-hidden group">
+                              <div className="mb-3 sm:mb-4">
+                                <div className="relative w-full h-80 bg-white/5 rounded-lg overflow-hidden group">
                                   <SlideCarousel 
                                     exhibition={exhibition}
                                     onImageClick={(index) => setSelectedPhoto({ 
@@ -165,10 +166,10 @@ export default function ExhibitionsPage() {
                               </div>
                             )}
 
-                            <div className="p-6">
+                            <div className="p-4 sm:p-6">
                               {/* 전시 정보 */}
-                              <h3 className="text-xl font-bold text-white mb-2">{exhibition.title}</h3>
-                              <p className="text-sm text-white/70 mb-2">
+                              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">{exhibition.title}</h3>
+                              <p className="text-xs sm:text-sm text-white/70 mb-2">
                                 {new Date(exhibition.startDate).toLocaleDateString('ko-KR', { 
                                   year: 'numeric', 
                                   month: '2-digit', 
@@ -180,12 +181,13 @@ export default function ExhibitionsPage() {
                                 }).replace(/\. /g, '.')} ({exhibition.location})
                               </p>
                               {exhibition.description && (
-                                <p className="text-xs text-white/60 mb-4 leading-relaxed line-clamp-3">{exhibition.description}</p>
+                                <p className="text-xs sm:text-sm text-white/60 mb-4 leading-relaxed line-clamp-2 sm:line-clamp-3">{exhibition.description}</p>
                               )}
 
                             </div>
                           </div>
                         ))}
+                      </div>
                     </div>
                   </div>
                 ))}
