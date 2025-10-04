@@ -15,7 +15,7 @@ interface Artwork {
   uploadedAt: string;
 }
 
-export default function GalleryPage() {
+export default function WorksPage() {
   const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [selectedArtwork, setSelectedArtwork] = useState<Artwork | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,7 +26,7 @@ export default function GalleryPage() {
     const fetchArtworks = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch('/api/gallery/list');
+        const response = await fetch('/api/works/list');
         const data = await response.json();
         
         if (data.success) {

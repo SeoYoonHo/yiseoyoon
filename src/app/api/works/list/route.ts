@@ -4,7 +4,7 @@ import { s3Client, S3_BUCKET, getS3ImageUrl } from '@/lib/s3';
 
 export async function GET(request: NextRequest) {
   try {
-    const metadataKey = 'Gallery/metadata.json';
+    const metadataKey = 'Works/metadata.json';
 
     try {
       const getMetadataCommand = new GetObjectCommand({

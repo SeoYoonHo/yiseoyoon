@@ -8,7 +8,7 @@ export default function NavBar() {
 
   const navItems = [
     { href: '/site/home', label: 'Home' },
-    { href: '/site/gallery', label: 'Gallery' },
+    { href: '/site/works', label: 'Works' },
     { href: '/site/exhibitions', label: 'Exhibitions' },
     { href: '/site/text', label: 'Text' },
     { href: '/site/about', label: 'About' },

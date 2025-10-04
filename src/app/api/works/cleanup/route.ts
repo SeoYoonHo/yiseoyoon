@@ -13,7 +13,7 @@ interface ArtworkMetadata {
 
 export async function POST() {
   try {
-    const metadataKey = 'Gallery/metadata.json';
+    const metadataKey = 'Works/metadata.json';
     let metadata: Record<string, ArtworkMetadata> = {};
 
     // 1. metadata.json 가져오기

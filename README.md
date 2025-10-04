@@ -40,7 +40,7 @@ yiseoyoon/
 │   ├── components/           # 재사용 가능한 컴포넌트
 │   │   ├── NavBar.tsx        # 네비게이션 바
 │   │   ├── BackgroundLayout.tsx # 배경 레이아웃
-│   │   ├── GalleryGrid.tsx   # 갤러리 그리드
+│   │   ├── WorksGrid.tsx   # 갤러리 그리드
 │   │   ├── TextGrid.tsx      # 텍스트 그리드
 │   │   └── Footer.tsx        # 푸터
 │   └── data/                 # 정적 데이터

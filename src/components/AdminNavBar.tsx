@@ -8,7 +8,7 @@ export default function AdminNavBar() {
 
   const adminTabs = [
     { name: 'Home', href: '/admin/home' },
-    { name: 'Gallery', href: '/admin/gallery' },
+    { name: 'Works', href: '/admin/works' },
     { name: 'Exhibitions', href: '/admin/exhibitions' },
     { name: 'Text', href: '/admin/text' },
     { name: 'About', href: '/admin/about' },

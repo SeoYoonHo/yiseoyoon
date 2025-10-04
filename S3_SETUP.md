@@ -81,7 +81,7 @@ yiseoyoon/
 ├── Home/
 │   └── Background/
 │       └── background.jpg (배경 이미지)
-├── Gallery/
+├── Works/
 │   └── (갤러리 작품들)
 ├── Exhibitions/
 │   └── (전시회 이미지들)

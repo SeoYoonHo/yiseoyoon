@@ -11,7 +11,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Artwork ID is required' }, { status: 400 });
     }
 
-    const metadataKey = 'Gallery/metadata.json';
+    const metadataKey = 'Works/metadata.json';
 
     // 1. metadata.json 가져오기
     let metadata: Record<string, any> = {};

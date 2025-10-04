@@ -7,12 +7,12 @@ interface Artwork {
   medium?: string;
 }
 
-interface GalleryGridProps {
+interface WorksGridProps {
   readonly artworks: Artwork[];
   readonly columns?: 2 | 3 | 4;
 }
 
-export default function GalleryGrid({ artworks, columns = 3 }: GalleryGridProps) {
+export default function WorksGrid({ artworks, columns = 3 }: WorksGridProps) {
   const gridCols = {
     2: 'md:grid-cols-2',
     3: 'md:grid-cols-2 lg:grid-cols-3',

@@ -19,7 +19,7 @@ interface Artwork {
   uploadedAt: string;
 }
 
-export default function AdminGalleryPage() {
+export default function AdminWorksPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [metadata, setMetadata] = useState<ArtworkMetadata>({
     title: '',
@@ -115,7 +115,7 @@ export default function AdminGalleryPage() {
       formData.append('date', metadata.date);
       formData.append('description', metadata.description);
 
-      const response = await fetch('/api/gallery/upload', {
+      const response = await fetch('/api/works/upload', {
         method: 'POST',
         body: formData,
       });
@@ -157,7 +157,7 @@ export default function AdminGalleryPage() {
   const fetchArtworks = async () => {
     setIsLoadingArtworks(true);
     try {
-      const response = await fetch('/api/gallery/list');
+      const response = await fetch('/api/works/list');
       const data = await response.json();
       if (data.success) {
         setArtworks(data.artworks || []);
@@ -177,7 +177,7 @@ export default function AdminGalleryPage() {
 
     setDeletingId(artworkId);
     try {
-      const response = await fetch(`/api/gallery/delete?id=${encodeURIComponent(artworkId)}`, {
+      const response = await fetch(`/api/works/delete?id=${encodeURIComponent(artworkId)}`, {
         method: 'DELETE',
       });
 
@@ -224,7 +224,7 @@ export default function AdminGalleryPage() {
 
     setIsUpdating(true);
     try {
-      const response = await fetch('/api/gallery/update', {
+        const response = await fetch('/api/works/update', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -278,7 +278,7 @@ export default function AdminGalleryPage() {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Gallery 관리</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Works 관리</h1>
         
         {/* 작품 업로드 섹션 */}
         <div className="border-b border-gray-200 pb-8 mb-8">

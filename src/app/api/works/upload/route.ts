@@ -32,8 +32,8 @@ export async function POST(request: NextRequest) {
     }
     
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const originalKey = `Gallery/${safeFilename}.${fileExtension}`;
-    const thumbnailKey = `Gallery/Thumbnail/${safeFilename}_thumb.jpg`;
+    const originalKey = `Works/${safeFilename}.${fileExtension}`;
+    const thumbnailKey = `Works/Thumbnail/${safeFilename}_thumb.jpg`;
 
     // 1. 원본 파일을 ArrayBuffer로 변환
     const arrayBuffer = await file.arrayBuffer();
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     await s3Client.send(uploadThumbnailCommand);
 
     // 5. metadata.json 업데이트
-    const metadataKey = 'Gallery/metadata.json';
+    const metadataKey = 'Works/metadata.json';
     let metadata: Record<string, {
       title: string;
       date: string;
