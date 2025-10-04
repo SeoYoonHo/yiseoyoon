@@ -276,8 +276,8 @@ export default function AdminWorksPage() {
   }, []);
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="w-full h-full px-6 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8 h-full">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Works 관리</h1>
         
         {/* 작품 업로드 섹션 */}

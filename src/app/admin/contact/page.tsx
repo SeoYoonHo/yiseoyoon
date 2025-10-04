@@ -81,8 +81,8 @@ export default function AdminContactPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-6xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="w-full h-full px-6 py-8">
+        <div className="bg-white rounded-lg shadow-lg p-8 h-full">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
@@ -95,8 +95,8 @@ export default function AdminContactPage() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="w-full h-full px-6 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8 h-full">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Contact 관리</h1>
 
         {/* Contact 업데이트 섹션 */}

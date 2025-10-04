@@ -9,7 +9,6 @@ interface ExhibitionImageModalProps {
   readonly photos: readonly string[];
   readonly currentIndex: number;
   readonly title: string;
-  readonly subtitle?: string;
   readonly onClose: () => void;
   readonly onNext?: () => void;
   readonly onPrev?: () => void;
@@ -20,7 +19,6 @@ export default function ExhibitionImageModal({
   photos,
   currentIndex,
   title,
-  subtitle,
   onClose,
   onNext,
   onPrev,

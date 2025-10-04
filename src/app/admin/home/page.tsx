@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { useBackground } from '@/contexts/BackgroundContext';
+// Admin doesn't use background context
 
 export default function AdminHomePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { refreshBackground } = useBackground();
+  // Admin doesn't need background refresh functionality
 
   const getStatusClassName = (status: string) => {
     if (status.includes('성공')) {
@@ -71,9 +71,8 @@ export default function AdminHomePage() {
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
-        // 배경 이미지 새로고침
+        // 배경 업로드 완료
         setTimeout(() => {
-          refreshBackground();
           setUploadStatus('배경화면이 업데이트되었습니다!');
         }, 1000);
       } else {
@@ -96,8 +95,8 @@ export default function AdminHomePage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+    <div className="w-full h-full px-6 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8 w-full h-full">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Home 관리</h1>
         
         {/* 배경화면 업로드 섹션 */}
@@ -159,10 +158,10 @@ export default function AdminHomePage() {
               </button>
               
               <button
-                onClick={refreshBackground}
+                onClick={() => window.location.reload()}
                 className="bg-gray-600 text-white px-6 py-2 rounded-md hover:bg-gray-700 transition-all"
               >
-                배경 새로고침
+                페이지 새로고침
               </button>
             </div>
 

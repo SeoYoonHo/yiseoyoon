@@ -3,52 +3,67 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function AdminNavBar() {
+interface AdminNavBarProps {
+  onLogout?: () => void;
+}
+
+export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
   const pathname = usePathname();
 
-  const adminTabs = [
-    { name: 'Home', href: '/admin/home' },
-    { name: 'Works', href: '/admin/works' },
-    { name: 'Exhibitions', href: '/admin/exhibitions' },
-    { name: 'Text', href: '/admin/text' },
-    { name: 'CV', href: '/admin/cv' },
-    { name: 'Contact', href: '/admin/contact' },
+  const navItems = [
+    { href: '/admin', label: 'Home' },
+    { href: '/admin/works', label: 'Works' },
+    { href: '/admin/exhibitions', label: 'Exhibitions' },
+    { href: '/admin/text', label: 'Text' },
+    { href: '/admin/cv', label: 'CV' },
+    { href: '/admin/contact', label: 'Contact' },
   ];
 
-  return (
-    <nav className="bg-red-600 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="flex items-center justify-between h-16">
-          {/* 어드민 로고 */}
-          <div className="flex items-center">
-            <span className="text-xl font-bold">Admin Panel</span>
-          </div>
+  const isActive = (href: string) => {
+    if (href === '/admin') {
+      return pathname === '/admin';
+    }
+    return pathname.startsWith(href);
+  };
 
-          {/* 어드민 메뉴 */}
-          <div className="flex space-x-8">
-            {adminTabs.map((tab) => (
+  return (
+    <nav className="fixed top-0 w-full bg-gray-800 z-50 border-b border-gray-600">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="flex justify-between items-center h-20">
+          <Link 
+            href="/admin"
+            className="text-2xl font-bold text-white hover:text-gray-200 transition-colors drop-shadow-md"
+          >
+            Admin
+          </Link>
+          <div className="hidden md:flex space-x-8">
+            {navItems.map((item) => (
               <Link
-                key={tab.name}
-                href={tab.href}
-                className={`text-base font-medium px-4 py-2 rounded-md transition-all ${
-                  pathname === tab.href
-                    ? 'bg-red-700 text-white'
-                    : 'text-red-100 hover:bg-red-700 hover:text-white'
+                key={item.href}
+                href={item.href}
+                className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                  isActive(item.href)
+                    ? 'bg-white/30 text-white'
+                    : 'text-white/80 hover:text-white hover:bg-white/20'
                 }`}
               >
-                {tab.name}
+                {item.label}
               </Link>
             ))}
-          </div>
-
-          {/* 사이트 보기 버튼 - 현재 어드민 페이지에 맞는 사이트 페이지로 이동 */}
-          <div className="flex items-center">
             <Link
-              href={pathname.replace('/admin', '/site')}
-              className="bg-white text-red-600 px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-100 transition-all"
+              href="/site/home"
+              className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
             >
-              View Site
+              ← Back to Site
             </Link>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              >
+                Logout
+              </button>
+            )}
           </div>
         </div>
       </div>

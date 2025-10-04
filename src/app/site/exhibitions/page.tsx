@@ -204,7 +204,6 @@ export default function ExhibitionsPage() {
           photos={selectedPhoto.photos}
           currentIndex={selectedPhoto.currentIndex}
           title={selectedPhoto.title}
-          subtitle={selectedPhoto.subtitle}
           isOpen={true}
           onClose={handleCloseModal}
           onNext={handleNextPhoto}

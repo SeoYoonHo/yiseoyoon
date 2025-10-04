@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, S3_BUCKET } from '@/lib/s3';
 
 export async function DELETE(request: NextRequest) {
@@ -14,7 +14,7 @@ export async function DELETE(request: NextRequest) {
     const metadataKey = 'Text/metadata.json';
 
     // 1. metadata.json 가져오기
-    let metadata: Record<string, any> = {};
+    let metadata: Record<string, { pdfUrl: string; title: string; createdAt: string }> = {};
     try {
       const getMetadataCommand = new GetObjectCommand({
         Bucket: S3_BUCKET,
