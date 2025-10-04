@@ -11,7 +11,7 @@ export default function NavBar() {
     { href: '/site/works', label: 'Works' },
     { href: '/site/exhibitions', label: 'Exhibitions' },
     { href: '/site/text', label: 'Text' },
-    { href: '/site/about', label: 'About' },
+    { href: '/site/cv', label: 'CV' },
     { href: '/site/contact', label: 'Contact' },
   ];
 

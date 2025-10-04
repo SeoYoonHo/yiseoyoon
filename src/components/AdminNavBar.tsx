@@ -11,7 +11,7 @@ export default function AdminNavBar() {
     { name: 'Works', href: '/admin/works' },
     { name: 'Exhibitions', href: '/admin/exhibitions' },
     { name: 'Text', href: '/admin/text' },
-    { name: 'About', href: '/admin/about' },
+    { name: 'CV', href: '/admin/cv' },
     { name: 'Contact', href: '/admin/contact' },
   ];
 
