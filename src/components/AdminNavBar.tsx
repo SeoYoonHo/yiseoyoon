@@ -58,7 +58,13 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
             </Link>
             {onLogout && (
               <button
-                onClick={onLogout}
+                onClick={() => {
+                  if (onLogout) {
+                    onLogout();
+                  }
+                  // 로그아웃 후 로그인 페이지로 이동
+                  window.location.href = '/admin/login';
+                }}
                 className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
               >
                 Logout
