@@ -1,8 +1,53 @@
-import TextGrid from '@/components/TextGrid';
+'use client';
+
+import { useState, useEffect } from 'react';
 import ContentTransition from '@/components/ContentTransition';
-import textData from '@/data/text.json';
+import PDFViewer from '@/components/PDFViewer';
+
+interface TextPost {
+  id: string;
+  title: string;
+  pdfUrl: string;
+  uploadedAt: string;
+}
 
 export default function TextPage() {
+  const [texts, setTexts] = useState<TextPost[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedText, setSelectedText] = useState<TextPost | null>(null);
+
+  useEffect(() => {
+    const fetchTexts = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/text/list');
+        const data = await response.json();
+        
+        if (data.success) {
+          setTexts(data.texts || []);
+        } else {
+          setError(data.error || '텍스트를 불러오는데 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Error fetching texts:', error);
+        setError('텍스트를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTexts();
+  }, []);
+
+  const handleTextClick = (text: TextPost) => {
+    setSelectedText(text);
+  };
+
+  const handleClosePDF = () => {
+    setSelectedText(null);
+  };
+
   return (
     <main className="h-full flex flex-col">
       {/* Navigation Space */}
@@ -11,14 +56,66 @@ export default function TextPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <TextGrid texts={textData.texts} />
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {isLoading && (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                  <p className="mt-4 text-white/80">텍스트를 불러오는 중...</p>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && error && (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center text-white/80">
+                  <p className="text-xl">{error}</p>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && texts.length === 0 && (
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center text-white/80">
+                  <p className="text-xl">아직 업로드된 텍스트가 없습니다.</p>
+                </div>
+              </div>
+            )}
+
+            {!isLoading && !error && texts.length > 0 && (
+              <div className="space-y-4">
+                {texts.map((text) => (
+                  <div
+                    key={text.id}
+                    onClick={() => handleTextClick(text)}
+                    className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all border border-white/10"
+                  >
+                    <h3 className="text-xl font-semibold text-white hover:text-white/80 transition-colors">
+                      {text.title}
+                    </h3>
+                    <div className="mt-2 text-sm text-white/60">
+                      업로드: {new Date(text.uploadedAt).toLocaleDateString('ko-KR')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </ContentTransition>
       </div>
       
       {/* Footer Space */}
       <div className="h-16"></div>
+
+      {/* PDF Viewer Modal */}
+      {selectedText && (
+        <PDFViewer
+          pdfUrl={selectedText.pdfUrl}
+          title={selectedText.title}
+          isOpen={true}
+          onClose={handleClosePDF}
+        />
+      )}
     </main>
   );
 }
