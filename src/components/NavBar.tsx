@@ -2,9 +2,28 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState, useEffect } from 'react';
 
 export default function NavBar() {
   const pathname = usePathname();
+  const [instagramUrl, setInstagramUrl] = useState('https://instagram.com');
+
+  useEffect(() => {
+    const fetchInstagramUrl = async () => {
+      try {
+        const response = await fetch('/api/contact/get');
+        const data = await response.json();
+        
+        if (data.success && data.data.instagramUrl) {
+          setInstagramUrl(data.data.instagramUrl);
+        }
+      } catch (error) {
+        console.error('Error fetching instagram URL:', error);
+      }
+    };
+
+    fetchInstagramUrl();
+  }, []);
 
   const navItems = [
     { href: '/site/home', label: 'Home' },
@@ -47,7 +66,7 @@ export default function NavBar() {
               </Link>
             ))}
               <a
-                href="https://instagram.com"
+                href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-3 rounded-md text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center gap-2"

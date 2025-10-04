@@ -100,9 +100,9 @@ export default function CVPage() {
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* CV Header */}
             <div className="mb-12">
-              <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">CV</h1>
+              <h1 className="text-white font-bold mb-4">CV</h1>
               {cvData?.name && (
-                <h2 className="text-xl md:text-2xl font-semibold text-white/90 mb-8">
+                <h2 className="text-white/90 font-bold mb-8">
                   {cvData.name}
                 </h2>
               )}

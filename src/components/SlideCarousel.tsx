@@ -83,16 +83,16 @@ export default function SlideCarousel({
             aria-label="Previous image"
           >
             <svg
-              width="24"
-              height="24"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth={3}
+              strokeWidth={1.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="m15 18-6-6 6-6" />
+              <path d="M15 18l-6-6 6-6" />
             </svg>
           </button>
           
@@ -101,12 +101,12 @@ export default function SlideCarousel({
             aria-label="Next image"
           >
             <svg
-              width="24"
-              height="24"
+              width="16"
+              height="16"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth={3}
+              strokeWidth={1.5}
               strokeLinecap="round"
               strokeLinejoin="round"
             >

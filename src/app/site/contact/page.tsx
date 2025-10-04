@@ -1,6 +1,83 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import ContentTransition from '@/components/ContentTransition';
 
+interface ContactData {
+  text: string;
+  instagramUrl: string;
+  updatedAt: string;
+}
+
 export default function ContactPage() {
+  const [contactData, setContactData] = useState<ContactData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchContactData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('/api/contact/get');
+        const data = await response.json();
+        
+        if (data.success) {
+          setContactData(data.data);
+        } else {
+          setError(data.error || '연락처 정보를 불러오는데 실패했습니다.');
+        }
+      } catch (error) {
+        console.error('Error fetching contact data:', error);
+        setError('연락처 정보를 불러오는데 실패했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchContactData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <main className="h-full flex flex-col">
+        <div className="h-20"></div>
+        <div className="flex-1 overflow-y-auto">
+          <ContentTransition>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center">
+                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
+                  <p className="mt-4 text-white/80">연락처 정보를 불러오는 중...</p>
+                </div>
+              </div>
+            </div>
+          </ContentTransition>
+        </div>
+        <div className="h-16"></div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="h-full flex flex-col">
+        <div className="h-20"></div>
+        <div className="flex-1 overflow-y-auto">
+          <ContentTransition>
+            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <div className="flex items-center justify-center min-h-[400px]">
+                <div className="text-center text-white/80">
+                  <p className="text-xl">{error}</p>
+                </div>
+              </div>
+            </div>
+          </ContentTransition>
+        </div>
+        <div className="h-16"></div>
+      </main>
+    );
+  }
+
   return (
     <main className="h-full flex flex-col">
       {/* Navigation Space */}
@@ -9,57 +86,19 @@ export default function ContactPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="p-4 bg-white/90 backdrop-blur-sm rounded-lg text-center shadow-lg">
-                <div className="text-xl mb-3">📧</div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Email</h3>
-                <p className="text-gray-600 text-sm">contact@example.com</p>
-              </div>
-              <div className="p-4 bg-white/90 backdrop-blur-sm rounded-lg text-center shadow-lg">
-                <div className="text-xl mb-3">📱</div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Phone</h3>
-                <p className="text-gray-600 text-sm">010-0000-0000</p>
-              </div>
-              <div className="p-4 bg-white/90 backdrop-blur-sm rounded-lg text-center shadow-lg">
-                <div className="text-xl mb-3">📍</div>
-                <h3 className="text-base font-semibold text-gray-900 mb-2">Location</h3>
-                <p className="text-gray-600 text-sm">Seoul, Korea</p>
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Contact Header */}
+            <div className="mb-12">
+              <h1 className="text-white font-bold mb-8">Contact</h1>
+            </div>
+
+            {/* Contact Content */}
+            <div className="mb-12">
+              <div className="text-white/90 leading-relaxed whitespace-pre-line max-w-4xl">
+                {contactData?.text || '연락처 정보가 아직 입력되지 않았습니다.'}
               </div>
             </div>
 
-            <div className="bg-white/90 backdrop-blur-sm p-6 rounded-lg shadow-lg">
-              <h3 className="text-xl font-bold text-gray-900 mb-4 text-center">Social Media</h3>
-              <div className="flex justify-center space-x-3">
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm"
-                >
-                  <span>📷</span>
-                  Instagram
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm"
-                >
-                  <span>📘</span>
-                  Facebook
-                </a>
-                <a
-                  href="https://twitter.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-3 bg-gray-900 text-white rounded-full hover:bg-gray-800 transition-colors flex items-center gap-2 text-sm"
-                >
-                  <span>🐦</span>
-                  Twitter
-                </a>
-              </div>
-            </div>
           </div>
         </ContentTransition>
       </div>

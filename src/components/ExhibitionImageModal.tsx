@@ -4,23 +4,27 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Image from 'next/image';
 
-interface CVImageModalProps {
+interface ExhibitionImageModalProps {
   readonly isOpen: boolean;
-  readonly images: readonly string[];
+  readonly photos: readonly string[];
   readonly currentIndex: number;
+  readonly title: string;
+  readonly subtitle?: string;
   readonly onClose: () => void;
   readonly onNext?: () => void;
   readonly onPrev?: () => void;
 }
 
-export default function CVImageModal({
+export default function ExhibitionImageModal({
   isOpen,
-  images,
+  photos,
   currentIndex,
+  title,
+  subtitle,
   onClose,
   onNext,
   onPrev,
-}: CVImageModalProps) {
+}: ExhibitionImageModalProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -57,7 +61,7 @@ export default function CVImageModal({
 
   // 이미지 인덱스가 변경될 때 페이드 애니메이션
   useEffect(() => {
-    if (isOpen && images.length > 0 && currentIndex !== currentImageIndex) {
+    if (isOpen && photos.length > 0 && currentIndex !== currentImageIndex) {
       // 기존 이미지 페이드 아웃
       setImageLoaded(false);
       
@@ -116,19 +120,12 @@ export default function CVImageModal({
         </svg>
       </button>
 
-      {/* 이미지 제목 */}
-      <div className="absolute top-6 left-6 z-20">
-        <h2 className="text-xl font-semibold text-white">
-          Poster {currentImageIndex + 1} of {images.length}
-        </h2>
-      </div>
-
-      {/* 이미지 컨테이너 */}
+      {/* 이미지 영역 */}
       <div 
-        className="relative w-full h-full flex items-center justify-center px-24 py-20"
+        className="relative w-full h-full flex items-center justify-center px-24 py-16"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative max-w-7xl w-full h-[70vh]">
+        <div className="relative w-full h-full max-w-7xl max-h-[80vh]">
           <div 
             className={`relative w-full h-full transition-opacity duration-200 ease-in-out ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -136,52 +133,55 @@ export default function CVImageModal({
           >
             <Image
               key={`image-${currentImageIndex}`}
-              src={images[currentImageIndex]}
-              alt={`Poster ${currentImageIndex + 1}`}
+              src={photos[currentImageIndex]}
+              alt={`${title} - ${currentImageIndex + 1}/${photos.length}`}
               fill
               className="object-contain"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+              sizes="(max-width: 1536px) 90vw, 1400px"
+              priority
             />
           </div>
         </div>
 
-        {/* 네비게이션 화살표 */}
-        {images.length > 1 && (
-          <>
-            {/* 이전 버튼 */}
-            {currentIndex > 0 && onPrev && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPrev();
-                }}
-                className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm cursor-pointer"
-                aria-label="Previous image"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-            )}
+        {/* 이전 버튼 */}
+        {photos.length > 1 && currentIndex > 0 && onPrev && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onPrev();
+            }}
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl cursor-pointer"
+            aria-label="Previous photo"
+          >
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+        )}
 
-            {/* 다음 버튼 */}
-            {currentIndex < images.length - 1 && onNext && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onNext();
-                }}
-                className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm cursor-pointer"
-                aria-label="Next image"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            )}
-          </>
+        {/* 다음 버튼 */}
+        {photos.length > 1 && currentIndex < photos.length - 1 && onNext && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNext();
+            }}
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl cursor-pointer"
+            aria-label="Next photo"
+          >
+            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
         )}
       </div>
+
+      {/* 사진 번호 표시 */}
+      {photos.length > 1 && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+          {currentImageIndex + 1} / {photos.length}
+        </div>
+      )}
     </div>,
     document.body
   );
