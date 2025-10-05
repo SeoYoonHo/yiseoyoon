@@ -50,19 +50,10 @@ export default function ExhibitionsPage() {
     fetchExhibitions();
   }, []);
 
-  // 연도별로 전시 그룹핑
-  const groupedExhibitions = exhibitions.reduce((acc, exhibition) => {
-    const year = new Date(exhibition.startDate).getFullYear();
-    if (!acc[year]) {
-      acc[year] = [];
-    }
-    acc[year].push(exhibition);
-    return acc;
-  }, {} as Record<number, Exhibition[]>);
-
-  const sortedYears = Object.keys(groupedExhibitions)
-    .map(Number)
-    .sort((a, b) => b - a);
+  // 전시 목록을 최신순으로 정렬
+  const sortedExhibitions = [...exhibitions].sort((a, b) => 
+    new Date(b.startDate).getTime() - new Date(a.startDate).getTime()
+  );
 
   const handleNextPhoto = () => {
     if (!selectedPhoto) return;
@@ -123,23 +114,12 @@ export default function ExhibitionsPage() {
             )}
 
             {!isLoading && !error && exhibitions.length > 0 && (
-              <div className="space-y-8 sm:space-y-12">
-                {sortedYears.map((year) => (
-                  <div key={year}>
-                    <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
-                      {/* 연도 헤더 */}
-                      <div className="flex items-center mb-6 sm:mb-8">
-                        <div className="w-3 h-3 sm:w-4 sm:h-4 rounded-full bg-white/40 mr-3 sm:mr-4"></div>
-                        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">{year}</h2>
-                        <div className="flex-1 h-px bg-white/20 ml-4 sm:ml-6"></div>
-                      </div>
-
-                      {/* 해당 연도의 전시들 - 세로로 배치 */}
-                      <div className="space-y-8 px-4 sm:px-6 lg:px-8 xl:px-12">
-                        {groupedExhibitions[year].map((exhibition) => (
+              <div className="w-full mx-auto px-4 sm:px-6 lg:px-8 xl:px-12">
+                <div className="space-y-8">
+                  {sortedExhibitions.map((exhibition) => (
                           <div 
                             key={exhibition.id} 
-                            className="w-full h-[28rem] bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden"
+                            className="w-full h-[32rem] bg-white/5 backdrop-blur-sm rounded-lg overflow-hidden"
                           >
                             {/* 슬라이드 갤러리 */}
                             {exhibition.photos.length > 0 && (
@@ -186,11 +166,8 @@ export default function ExhibitionsPage() {
 
                             </div>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
           </div>

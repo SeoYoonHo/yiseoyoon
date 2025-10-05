@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useState } from 'react';
 
 interface AdminNavBarProps {
   onLogout?: () => void;
@@ -9,6 +10,7 @@ interface AdminNavBarProps {
 
 export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
   const pathname = usePathname();
+  const [isWorksDropdownOpen, setIsWorksDropdownOpen] = useState(false);
 
   const navItems = [
     { href: '/admin', label: 'Home' },
@@ -38,17 +40,65 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
           </Link>
           <div className="hidden md:flex space-x-8">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-white/30 text-white'
-                    : 'text-white/80 hover:text-white hover:bg-white/20'
-                }`}
-              >
-                {item.label}
-              </Link>
+              item.label === 'Works' ? (
+                <div
+                  key={item.href}
+                  className="relative flex"
+                  onMouseEnter={() => setIsWorksDropdownOpen(true)}
+                  onMouseLeave={() => setIsWorksDropdownOpen(false)}
+                >
+                  <Link
+                    href={item.href}
+                    className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                      isActive(item.href) || pathname.startsWith('/admin/works/')
+                        ? 'bg-white/30 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                  
+                  {/* Works 드롭다운 메뉴 */}
+                  {isWorksDropdownOpen && (
+                    <div className="absolute top-full left-0 bg-gray-700 rounded-md shadow-lg z-50 min-w-[120px]">
+                      <Link
+                        href="/admin/works/painting"
+                        onClick={() => setIsWorksDropdownOpen(false)}
+                        className={`block px-4 py-2 text-sm font-medium transition-colors ${
+                          pathname === '/admin/works/painting'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Painting
+                      </Link>
+                      <Link
+                        href="/admin/works/drawing"
+                        onClick={() => setIsWorksDropdownOpen(false)}
+                        className={`block px-4 py-2 text-sm font-medium transition-colors ${
+                          pathname === '/admin/works/drawing'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Drawing
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-4 py-3 rounded-md text-base font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-white/30 text-white'
+                      : 'text-white/80 hover:text-white hover:bg-white/20'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
             ))}
             <Link
               href="/site/home"

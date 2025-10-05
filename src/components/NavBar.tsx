@@ -8,6 +8,7 @@ export default function NavBar() {
   const pathname = usePathname();
   const [instagramUrl, setInstagramUrl] = useState('https://instagram.com');
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isWorksDropdownOpen, setIsWorksDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchInstagramUrl = async () => {
@@ -54,17 +55,65 @@ export default function NavBar() {
           </Link>
           <div className="hidden sm:flex space-x-2 md:space-x-4 lg:space-x-6 xl:space-x-8">
             {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium transition-colors ${
-                  isActive(item.href)
-                    ? 'bg-white/30 text-white'
-                    : 'text-white/80 hover:text-white hover:bg-white/20'
-                }`}
-              >
-                {item.label}
-              </Link>
+              item.label === 'Works' ? (
+                <div
+                  key={item.href}
+                  className="relative flex"
+                  onMouseEnter={() => setIsWorksDropdownOpen(true)}
+                  onMouseLeave={() => setIsWorksDropdownOpen(false)}
+                >
+                  <Link
+                    href={item.href}
+                    className={`px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium transition-colors ${
+                      isActive(item.href) || pathname.startsWith('/site/works/')
+                        ? 'bg-white/30 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                  
+                  {/* Works 드롭다운 메뉴 */}
+                  {isWorksDropdownOpen && (
+                    <div className="absolute top-full left-0 bg-black/90 backdrop-blur-md rounded-md shadow-lg z-50 min-w-[120px]">
+                      <Link
+                        href="/site/works/painting"
+                        onClick={() => setIsWorksDropdownOpen(false)}
+                        className={`block px-4 py-2 text-sm font-medium transition-colors ${
+                          pathname === '/site/works/painting'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Painting
+                      </Link>
+                      <Link
+                        href="/site/works/drawing"
+                        onClick={() => setIsWorksDropdownOpen(false)}
+                        className={`block px-4 py-2 text-sm font-medium transition-colors ${
+                          pathname === '/site/works/drawing'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Drawing
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium transition-colors ${
+                    isActive(item.href)
+                      ? 'bg-white/30 text-white'
+                      : 'text-white/80 hover:text-white hover:bg-white/20'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              )
             ))}
               <a
                 href={instagramUrl}
@@ -107,18 +156,58 @@ export default function NavBar() {
           <div className="sm:hidden bg-black/40 backdrop-blur-md border-t border-white/20">
             <div className="px-4 py-4 space-y-2">
               {navItems.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                    isActive(item.href)
-                      ? 'bg-white/30 text-white'
-                      : 'text-white/80 hover:text-white hover:bg-white/20'
-                  }`}
-                >
-                  {item.label}
-                </Link>
+                item.label === 'Works' ? (
+                  <div key={item.href} className="space-y-1">
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive(item.href) || pathname.startsWith('/site/works/')
+                          ? 'bg-white/30 text-white'
+                          : 'text-white/80 hover:text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    <div className="ml-4 space-y-1">
+                      <Link
+                        href="/site/works/painting"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          pathname === '/site/works/painting'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Painting
+                      </Link>
+                      <Link
+                        href="/site/works/drawing"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          pathname === '/site/works/drawing'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Drawing
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-white/30 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                )
               ))}
               <a
                 href={instagramUrl}

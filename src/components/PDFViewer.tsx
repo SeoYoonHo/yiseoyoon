@@ -76,12 +76,16 @@ export default function PDFViewer({ pdfUrl, title, isOpen, onClose }: PDFViewerP
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative w-full h-full bg-white rounded-lg shadow-2xl overflow-hidden">
-          {/* PDF iframe */}
+          {/* PDF iframe - 툴바는 숨기되 텍스트 선택 가능하도록 */}
           <iframe
-            src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1&page=1&view=FitH`}
+            src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1&page=1&view=FitH`}
             className="w-full h-full border-0"
             title={title}
             loading="lazy"
+            style={{ 
+              border: 'none',
+              outline: 'none'
+            }}
           />
         </div>
       </div>
