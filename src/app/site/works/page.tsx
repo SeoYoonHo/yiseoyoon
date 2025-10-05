@@ -52,17 +52,7 @@ export default function WorksPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center p-8">
-                        <div className="text-center">
-                          <div className="w-32 h-32 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                            <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM7 3H5a2 2 0 00-2 2v12a4 4 0 004 4h2V3zM13 8l4-4 4 4M13 8l4 4M13 8l4 4M13 8l4 4" />
-                            </svg>
-                          </div>
-                          <h2 className="text-2xl font-bold text-white mb-2">Painting</h2>
-                          <p className="text-white/70">Painting</p>
-                        </div>
-                      </div>
+                      <div className="w-full h-full"></div>
                     )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
                       <div className="text-center text-white">
@@ -86,17 +76,7 @@ export default function WorksPage() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center p-8">
-                        <div className="text-center">
-                          <div className="w-32 h-32 mx-auto mb-6 bg-white/20 rounded-full flex items-center justify-center group-hover:bg-white/30 transition-colors">
-                            <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                          </div>
-                          <h2 className="text-2xl font-bold text-white mb-2">Drawing</h2>
-                          <p className="text-white/70">Drawing</p>
-                        </div>
-                      </div>
+                      <div className="w-full h-full"></div>
                     )}
                     <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center">
                       <div className="text-center text-white">
