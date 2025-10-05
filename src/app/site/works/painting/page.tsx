@@ -181,18 +181,18 @@ export default function PaintingPage() {
                             </div>
                             
                             {/* 작품 그리드 */}
-                            <div className="grid grid-cols-2 gap-6">
+                            <div className="columns-2 gap-6 space-y-6">
                               {yearWorks.map((work) => (
                                 <div 
                                   key={work.id} 
-                                  className="group cursor-pointer"
+                                  className="group cursor-pointer break-inside-avoid mb-6"
                                   onClick={() => handleWorkClick(work)}
                                 >
-                                  <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4 overflow-hidden">
+                                  <div className="bg-gray-200 rounded-lg mb-4 overflow-hidden">
                                     <img 
                                       src={work.thumbnailImage} 
                                       alt={work.title}
-                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
                                     />
                                   </div>
                                   <h3 className="text-lg font-semibold text-white mb-2">{work.title}</h3>

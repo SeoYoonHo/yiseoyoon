@@ -134,18 +134,19 @@ export default function CVPage() {
                   ? 'opacity-100' 
                   : 'opacity-0'
               }`}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
+                <div className="columns-4 gap-1 space-y-1">
                   {cvData.images.map((imageUrl, index) => (
                     <div
                       key={index}
-                      className="relative aspect-[3/4] rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300 cursor-pointer"
+                      className="relative break-inside-avoid mb-1 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-transform duration-300 cursor-pointer"
                       onClick={() => setSelectedImage({ url: imageUrl, title: `Poster ${index + 1}`, index })}
                     >
                       <Image
                         src={imageUrl}
                         alt={`Exhibition poster ${index + 1}`}
-                        fill
-                        className="object-cover"
+                        width={300}
+                        height={400}
+                        className="w-full h-auto object-cover"
                         sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     </div>

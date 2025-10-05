@@ -18,14 +18,14 @@ export default function WorksGrid({ artworks }: WorksGridProps) {
   const safeArtworks = artworks || [];
 
   return (
-    <div className="grid grid-cols-2 gap-8">
+    <div className="columns-2 gap-8 space-y-8">
       {safeArtworks.map((artwork) => (
-        <div key={artwork.id} className="group cursor-pointer">
-          <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4 overflow-hidden">
+        <div key={artwork.id} className="group cursor-pointer break-inside-avoid mb-8">
+          <div className="bg-gray-200 rounded-lg mb-4 overflow-hidden">
             <img 
               src={artwork.thumbnailImage} 
               alt={artwork.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
             />
           </div>
           <h3 className="text-lg font-semibold text-white mb-2">{artwork.title}</h3>
