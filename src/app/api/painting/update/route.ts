@@ -37,15 +37,15 @@ export async function PUT(request: NextRequest) {
       if (metadataContent) {
         artworks = JSON.parse(metadataContent);
       }
-    } catch (error: any) {
-      if (error.name === 'NoSuchKey') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'NoSuchKey') {
         return NextResponse.json({ success: false, error: '메타데이터를 찾을 수 없습니다.' }, { status: 404 });
       }
       throw error;
     }
 
     // 수정할 작품 찾기
-    const artworkIndex = artworks.findIndex((artwork: any) => artwork.id === id);
+    const artworkIndex = artworks.findIndex((artwork: { id: string }) => artwork.id === id);
     if (artworkIndex === -1) {
       return NextResponse.json({ success: false, error: '작품을 찾을 수 없습니다.' }, { status: 404 });
     }

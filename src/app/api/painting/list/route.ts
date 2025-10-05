@@ -34,7 +34,7 @@ export async function GET() {
       const artworks = JSON.parse(metadataContent);
 
       // 상대 경로를 전체 URL로 변환
-      const artworksWithUrls = artworks.map((artwork: any) => ({
+      const artworksWithUrls = artworks.map((artwork: { originalImage: string; thumbnailImage: string; [key: string]: unknown }) => ({
         ...artwork,
         originalImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.originalImage}`,
         thumbnailImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailImage}`,
@@ -45,8 +45,8 @@ export async function GET() {
         works: artworksWithUrls
       });
 
-    } catch (error: any) {
-      if (error.name === 'NoSuchKey') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'NoSuchKey') {
         // 메타데이터 파일이 없는 경우 빈 배열 반환
         return NextResponse.json({
           success: true,

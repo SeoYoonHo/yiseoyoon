@@ -26,16 +26,18 @@ export async function GET(request: NextRequest) {
       const metadata = JSON.parse(metadataString);
       
       // 메타데이터를 배열로 변환하고 날짜순으로 정렬 (최신순)
-      const artworks = Object.entries(metadata).map(([key, value]: [string, any]) => {
+      const artworks = Object.entries(metadata).map(([key, value]) => {
         // URL이 이미 전체 경로인지 확인 (http:// 또는 https://로 시작)
         const isFullUrl = (url: string) => url.startsWith('http://') || url.startsWith('https://');
         
+        const data = value as { originalImage: string; thumbnailImage: string; date: string; [key: string]: unknown };
+        
         return {
           id: key,
-          ...value,
+          ...data,
           // 상대 경로인 경우에만 전체 URL로 변환
-          originalImage: isFullUrl(value.originalImage) ? value.originalImage : getS3ImageUrl(value.originalImage),
-          thumbnailImage: isFullUrl(value.thumbnailImage) ? value.thumbnailImage : getS3ImageUrl(value.thumbnailImage),
+          originalImage: isFullUrl(data.originalImage) ? data.originalImage : getS3ImageUrl(data.originalImage),
+          thumbnailImage: isFullUrl(data.thumbnailImage) ? data.thumbnailImage : getS3ImageUrl(data.thumbnailImage),
         };
       }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -45,9 +47,9 @@ export async function GET(request: NextRequest) {
         message: 'Artworks fetched successfully'
       });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
       // metadata.json이 없는 경우
-      if (error.name === 'NoSuchKey' || error.$metadata?.httpStatusCode === 404) {
+      if ((error instanceof Error && error.name === 'NoSuchKey') || (error as { $metadata?: { httpStatusCode?: number } }).$metadata?.httpStatusCode === 404) {
         return NextResponse.json({ 
           success: true,
           artworks: [],

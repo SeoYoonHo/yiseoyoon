@@ -12,10 +12,6 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
-// S3 메타데이터 헤더 정리 함수
-function sanitizeMetadataKey(key: string): string {
-  return key.replace(/[^a-zA-Z0-9\-_]/g, '');
-}
 
 function sanitizeMetadataValue(value: string): string {
   return value.replace(/[^\x20-\x7E]/g, '');

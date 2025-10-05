@@ -25,12 +25,15 @@ export async function GET(request: NextRequest) {
       const metadata = JSON.parse(metadataBody);
       
       // 메타데이터를 배열로 변환하여 반환
-      const texts = Object.entries(metadata).map(([id, textData]: [string, any]) => ({
-        id,
-        title: textData.title,
-        pdfUrl: textData.pdfUrl,
-        uploadedAt: textData.uploadedAt,
-      }));
+      const texts = Object.entries(metadata).map(([id, textData]) => {
+        const data = textData as { title: string; pdfUrl: string; uploadedAt: string };
+        return {
+          id,
+          title: data.title,
+          pdfUrl: data.pdfUrl,
+          uploadedAt: data.uploadedAt,
+        };
+      });
 
       // 업로드 날짜 기준으로 정렬 (최신순)
       texts.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());

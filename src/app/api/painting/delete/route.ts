@@ -34,15 +34,15 @@ export async function DELETE(request: NextRequest) {
       if (metadataContent) {
         artworks = JSON.parse(metadataContent);
       }
-    } catch (error: any) {
-      if (error.name === 'NoSuchKey') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === 'NoSuchKey') {
         return NextResponse.json({ success: false, error: '메타데이터를 찾을 수 없습니다.' }, { status: 404 });
       }
       throw error;
     }
 
     // 삭제할 작품 찾기
-    const artworkToDelete = artworks.find((artwork: any) => artwork.id === id);
+    const artworkToDelete = artworks.find((artwork: { id: string }) => artwork.id === id);
     if (!artworkToDelete) {
       return NextResponse.json({ success: false, error: '작품을 찾을 수 없습니다.' }, { status: 404 });
     }
@@ -70,7 +70,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 메타데이터에서 작품 제거
-    const updatedArtworks = artworks.filter((artwork: any) => artwork.id !== id);
+    const updatedArtworks = artworks.filter((artwork: { id: string }) => artwork.id !== id);
 
     // 업데이트된 메타데이터 저장
     const putCommand = new PutObjectCommand({

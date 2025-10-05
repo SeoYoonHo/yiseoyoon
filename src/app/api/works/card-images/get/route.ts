@@ -27,8 +27,8 @@ export async function GET() {
       });
       await s3Client.send(paintingCommand);
       paintingUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${paintingKey}`;
-    } catch (error: any) {
-      if (error.name !== 'NoSuchKey') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== 'NoSuchKey') {
         console.error('Painting 카드 이미지 조회 오류:', error);
       }
     }
@@ -41,8 +41,8 @@ export async function GET() {
       });
       await s3Client.send(drawingCommand);
       drawingUrl = `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${drawingKey}`;
-    } catch (error: any) {
-      if (error.name !== 'NoSuchKey') {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name !== 'NoSuchKey') {
         console.error('Drawing 카드 이미지 조회 오류:', error);
       }
     }

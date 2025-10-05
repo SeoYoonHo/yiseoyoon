@@ -14,7 +14,7 @@ export async function DELETE(request: NextRequest) {
     const metadataKey = 'Works/metadata.json';
 
     // 1. metadata.json 가져오기
-    let metadata: Record<string, any> = {};
+    let metadata: Record<string, unknown> = {};
     try {
       const getMetadataCommand = new GetObjectCommand({
         Bucket: S3_BUCKET,
@@ -47,8 +47,9 @@ export async function DELETE(request: NextRequest) {
         return url; // 이미 키 형식인 경우
       };
 
-      const originalKey = extractS3Key(artwork.originalImage);
-      const thumbnailKey = extractS3Key(artwork.thumbnailImage);
+      const artworkData = artwork as { originalImage: string; thumbnailImage: string };
+      const originalKey = extractS3Key(artworkData.originalImage);
+      const thumbnailKey = extractS3Key(artworkData.thumbnailImage);
 
       // 원본 이미지 삭제
       const deleteOriginalCommand = new DeleteObjectCommand({

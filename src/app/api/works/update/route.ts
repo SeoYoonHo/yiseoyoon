@@ -14,7 +14,7 @@ export async function PUT(request: NextRequest) {
     const metadataKey = 'Works/metadata.json';
 
     // 1. metadata.json 가져오기
-    let metadata: Record<string, any> = {};
+    let metadata: Record<string, unknown> = {};
     try {
       const getMetadataCommand = new GetObjectCommand({
         Bucket: S3_BUCKET,
