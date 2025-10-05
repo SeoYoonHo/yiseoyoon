@@ -11,24 +11,17 @@ interface Artwork {
 
 interface WorksGridProps {
   readonly artworks: Artwork[];
-  readonly columns?: 2 | 3 | 4;
 }
 
-export default function WorksGrid({ artworks, columns = 3 }: WorksGridProps) {
-  const gridCols = {
-    2: 'md:grid-cols-2',
-    3: 'md:grid-cols-2 lg:grid-cols-3',
-    4: 'md:grid-cols-2 lg:grid-cols-4'
-  };
-
+export default function WorksGrid({ artworks }: WorksGridProps) {
   // artworks가 undefined이거나 null인 경우 빈 배열로 처리
   const safeArtworks = artworks || [];
 
   return (
-    <div className={`grid grid-cols-1 ${gridCols[columns]} gap-8`}>
+    <div className="grid grid-cols-2 gap-8">
       {safeArtworks.map((artwork) => (
         <div key={artwork.id} className="group cursor-pointer">
-          <div className="aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden">
+          <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4 overflow-hidden">
             <img 
               src={artwork.thumbnailImage} 
               alt={artwork.title}

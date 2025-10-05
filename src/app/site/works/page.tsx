@@ -49,13 +49,13 @@ export default function WorksPage() {
           }`}>
             <div className="w-full mx-auto">
               <div 
-                className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 w-[90%] mx-auto"
+                className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 w-[90%] mx-auto"
                 style={{ maxHeight: '80vh' }}
               >
                 {/* Painting */}
                 <Link
                   href="/site/works/painting"
-                  className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 justify-self-end w-full"
+                  className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full"
                   style={{ maxHeight: '80vh', maxWidth: 'calc(80vh * 3 / 4)' }}
                 >
                   <div className="aspect-[3/4] relative">
@@ -79,7 +79,7 @@ export default function WorksPage() {
                 {/* Drawing */}
                 <Link
                   href="/site/works/drawing"
-                  className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 justify-self-start w-full"
+                  className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full"
                   style={{ maxHeight: '80vh', maxWidth: 'calc(80vh * 3 / 4)' }}
                 >
                   <div className="aspect-[3/4] relative">

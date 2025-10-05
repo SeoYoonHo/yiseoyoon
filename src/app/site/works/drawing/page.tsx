@@ -181,14 +181,14 @@ export default function DrawingPage() {
                             </div>
                             
                             {/* 작품 그리드 */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-2 gap-6">
                               {yearWorks.map((work) => (
                                 <div 
                                   key={work.id} 
                                   className="group cursor-pointer"
                                   onClick={() => handleWorkClick(work)}
                                 >
-                                  <div className="aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden">
+                                  <div className="aspect-[3/4] bg-gray-200 rounded-lg mb-4 overflow-hidden">
                                     <img 
                                       src={work.thumbnailImage} 
                                       alt={work.title}
