@@ -16,6 +16,7 @@ export default function TextPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedText, setSelectedText] = useState<TextPost | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const fetchTexts = async () => {
@@ -40,6 +41,17 @@ export default function TextPage() {
     fetchTexts();
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && !error) {
+      // 데이터 로딩 완료 후 애니메이션 시작
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, error]);
+
   const handleTextClick = (text: TextPost) => {
     setSelectedText(text);
   };
@@ -56,15 +68,11 @@ export default function TextPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {isLoading && (
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                  <p className="mt-4 text-white/80">텍스트를 불러오는 중...</p>
-                </div>
-              </div>
-            )}
+          <div className={`max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 transition-all duration-1000 ease-out ${
+            isVisible 
+              ? 'opacity-100' 
+              : 'opacity-0'
+          }`}>
 
             {!isLoading && error && (
               <div className="flex items-center justify-center min-h-[400px]">

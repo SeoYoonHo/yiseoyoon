@@ -401,12 +401,7 @@ export default function AdminExhibitionsPage() {
         )}
 
         {/* 전시 목록 */}
-        {isLoading ? (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            <p className="mt-4 text-gray-600">전시 목록을 불러오는 중...</p>
-          </div>
-        ) : exhibitions.length === 0 ? (
+        {!isLoading && exhibitions.length === 0 ? (
           <div className="text-center py-12 text-gray-500">
             아직 등록된 전시가 없습니다.
           </div>

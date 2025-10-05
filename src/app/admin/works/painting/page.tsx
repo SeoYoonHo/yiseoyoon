@@ -436,12 +436,6 @@ export default function AdminPaintingPage() {
             </div>
           </div>
           
-          {isLoadingArtworks && (
-            <div className="bg-gray-50 rounded-lg p-8 text-center">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-              <p className="mt-2 text-gray-600">작품 목록을 불러오는 중...</p>
-            </div>
-          )}
 
           {!isLoadingArtworks && filteredArtworks.length === 0 && (
             <div className="bg-gray-50 rounded-lg p-8 text-center">

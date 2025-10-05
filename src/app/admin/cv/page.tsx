@@ -169,18 +169,7 @@ export default function AdminCVPage() {
   };
 
   if (isLoading) {
-    return (
-      <div className="w-full h-full px-6 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-8 h-full">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-gray-600"></div>
-              <p className="mt-4 text-gray-600">CV 데이터를 불러오는 중...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -316,7 +305,7 @@ export default function AdminCVPage() {
                       aria-label={`Delete image ${index + 1}`}
                     >
                       {deletingImageUrl === imageUrl ? (
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs">삭제 중...</span>
                       ) : (
                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

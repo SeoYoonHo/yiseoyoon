@@ -27,6 +27,7 @@ export default function PaintingPage() {
     description?: string;
   } | null>(null);
   const [activeYear, setActiveYear] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -54,6 +55,17 @@ export default function PaintingPage() {
 
     fetchWorks();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !error) {
+      // 데이터 로딩 완료 후 애니메이션 시작
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, error]);
 
   const handleWorkClick = (work: Work) => {
     setSelectedWork({
@@ -103,16 +115,12 @@ export default function PaintingPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="w-full py-8">
+          <div className={`w-full py-8 transition-all duration-1000 ease-out ${
+            isVisible 
+              ? 'opacity-100' 
+              : 'opacity-0'
+          }`}>
             <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
-              {isLoading && (
-                <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
-                  <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-white"></div>
-                    <p className="mt-3 sm:mt-4 text-sm sm:text-base text-white/80">작품 목록을 불러오는 중...</p>
-                  </div>
-                </div>
-              )}
 
               {!isLoading && error && (
                 <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">

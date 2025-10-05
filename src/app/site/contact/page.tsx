@@ -13,6 +13,7 @@ export default function ContactPage() {
   const [contactData, setContactData] = useState<ContactData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     const fetchContactData = async () => {
@@ -37,25 +38,19 @@ export default function ContactPage() {
     fetchContactData();
   }, []);
 
+  useEffect(() => {
+    if (!isLoading && !error) {
+      // 데이터 로딩 완료 후 애니메이션 시작
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, error]);
+
   if (isLoading) {
-    return (
-      <main className="h-full flex flex-col">
-        <div className="h-20"></div>
-        <div className="flex-1 overflow-y-auto">
-          <ContentTransition>
-            <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-              <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-white"></div>
-                  <p className="mt-4 text-white/80">연락처 정보를 불러오는 중...</p>
-                </div>
-              </div>
-            </div>
-          </ContentTransition>
-        </div>
-        <div className="h-16"></div>
-      </main>
-    );
+    return null;
   }
 
   if (error) {
@@ -87,15 +82,22 @@ export default function ContactPage() {
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
           <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Contact Header */}
-            <div className="mb-12">
-              <h1 className="text-white font-bold mb-8">Contact</h1>
-            </div>
+            {/* Contact Header and Content - Combined Animation */}
+            <div className={`mb-12 ${
+              isVisible 
+                ? 'opacity-100 translate-y-0 transition-all duration-[1000ms] ease-out' 
+                : 'opacity-0 translate-y-20'
+            }`}>
+              {/* Contact Header */}
+              <div className="mb-12">
+                <h1 className="text-white font-bold mb-8">Contact</h1>
+              </div>
 
-            {/* Contact Content */}
-            <div className="mb-12">
-              <div className="text-white/90 leading-relaxed whitespace-pre-line max-w-4xl">
-                {contactData?.text || '연락처 정보가 아직 입력되지 않았습니다.'}
+              {/* Contact Content */}
+              <div className="mb-12">
+                <div className="text-white/90 leading-relaxed whitespace-pre-line max-w-4xl">
+                  {contactData?.text || '연락처 정보가 아직 입력되지 않았습니다.'}
+                </div>
               </div>
             </div>
 

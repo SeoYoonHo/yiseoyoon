@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 
 export default function WorksPage() {
   const [cardImages, setCardImages] = useState<{painting: string | null, drawing: string | null}>({painting: null, drawing: null});
+  const [isVisible, setIsVisible] = useState(false);
 
   // 카드 이미지 불러오기
   const fetchCardImages = async () => {
@@ -24,6 +25,15 @@ export default function WorksPage() {
   useEffect(() => {
     fetchCardImages();
   }, []);
+
+  useEffect(() => {
+    // 페이지 로드 후 애니메이션 시작
+    const timer = setTimeout(() => {
+      setIsVisible(true);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, []);
   return (
     <main className="h-full flex flex-col">
       {/* Navigation Space */}
@@ -32,7 +42,11 @@ export default function WorksPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="w-full py-8">
+          <div className={`w-full py-8 transition-all duration-1000 ease-out ${
+            isVisible 
+              ? 'opacity-100' 
+              : 'opacity-0'
+          }`}>
             <div className="w-full mx-auto">
               <div 
                 className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8 w-[90%] mx-auto"

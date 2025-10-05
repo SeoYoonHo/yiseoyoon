@@ -20,6 +20,7 @@ export default function ExhibitionsPage() {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isVisible, setIsVisible] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<{ 
     photos: string[]; 
     currentIndex: number; 
@@ -49,6 +50,17 @@ export default function ExhibitionsPage() {
 
     fetchExhibitions();
   }, []);
+
+  useEffect(() => {
+    if (!isLoading && !error) {
+      // 데이터 로딩 완료 후 애니메이션 시작
+      const timer = setTimeout(() => {
+        setIsVisible(true);
+      }, 300);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isLoading, error]);
 
   // 전시 목록을 최신순으로 정렬
   const sortedExhibitions = [...exhibitions].sort((a, b) => 
@@ -86,15 +98,11 @@ export default function ExhibitionsPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className="w-full py-6 sm:py-8 lg:py-12">
-            {isLoading && (
-              <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
-                <div className="text-center">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 sm:h-12 sm:w-12 border-b-2 border-white"></div>
-                  <p className="mt-3 sm:mt-4 text-sm sm:text-base text-white/80">전시 목록을 불러오는 중...</p>
-                </div>
-              </div>
-            )}
+          <div className={`w-full py-6 sm:py-8 lg:py-12 transition-all duration-1000 ease-out ${
+            isVisible 
+              ? 'opacity-100' 
+              : 'opacity-0'
+          }`}>
 
             {!isLoading && error && (
               <div className="flex items-center justify-center min-h-[300px] sm:min-h-[400px]">
