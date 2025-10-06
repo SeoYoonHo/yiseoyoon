@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import ContentTransition from '@/components/ContentTransition';
 import ImageModal from '@/components/ImageModal';
@@ -33,6 +33,8 @@ export default function DrawingPage() {
   } | null>(null);
   const [activeYear, setActiveYear] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [visibleImages, setVisibleImages] = useState<Set<string>>(new Set());
+  const imageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     const fetchWorks = async () => {
@@ -66,11 +68,35 @@ export default function DrawingPage() {
       // 데이터 로딩 완료 후 애니메이션 시작
       const timer = setTimeout(() => {
         setIsVisible(true);
-      }, 300);
+      }, 500);
       
       return () => clearTimeout(timer);
     }
   }, [isLoading, error]);
+
+  // Intersection Observer로 이미지 애니메이션 처리
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const workId = entry.target.getAttribute('data-work-id');
+            if (workId) {
+              setVisibleImages(prev => new Set([...prev, workId]));
+            }
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    // 모든 이미지 요소 관찰
+    imageRefs.current.forEach((element) => {
+      observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, [works]);
 
   const handleWorkClick = (work: Work) => {
     setSelectedWork({
@@ -120,7 +146,7 @@ export default function DrawingPage() {
       {/* Content Area - Scrollable within fixed height */}
       <div className="flex-1 overflow-y-auto">
         <ContentTransition>
-          <div className={`w-full py-8 transition-all duration-1000 ease-out ${
+          <div className={`w-full py-8 transition-all duration-2000 ease-out ${
             isVisible 
               ? 'opacity-100' 
               : 'opacity-0'
@@ -190,26 +216,40 @@ export default function DrawingPage() {
                               {yearWorks.map((work) => (
                                 <div 
                                   key={work.id} 
-                                  className="group cursor-pointer break-inside-avoid mb-6"
-                                  onClick={() => handleWorkClick(work)}
+                                  className={`break-inside-avoid mb-6 transition-all duration-1000 ${
+                                    visibleImages.has(work.id)
+                                      ? 'opacity-100 scale-100' 
+                                      : 'opacity-0 scale-95'
+                                  }`}
+                                  ref={(el) => {
+                                    if (el) {
+                                      imageRefs.current.set(work.id, el);
+                                    }
+                                  }}
+                                  data-work-id={work.id}
                                 >
-                                  <div className="bg-gray-200 rounded-lg mb-4 overflow-hidden relative">
-                                    <Image
-                                      src={getResponsiveThumbnail(
-                                        work.thumbnailSmall,
-                                        work.thumbnailMedium,
-                                        work.thumbnailLarge,
-                                        work.thumbnailImage
-                                      )}
-                                      alt={work.title}
-                                      width={400}
-                                      height={600}
-                                      className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                                      loading="lazy"
-                                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
-                                    />
+                                  <div 
+                                    className="group cursor-pointer"
+                                    onClick={() => handleWorkClick(work)}
+                                  >
+                                    <div className="rounded-lg mb-4 overflow-hidden relative">
+                                      <Image
+                                        src={getResponsiveThumbnail(
+                                          work.thumbnailSmall,
+                                          work.thumbnailMedium,
+                                          work.thumbnailLarge,
+                                          work.thumbnailImage
+                                        )}
+                                        alt={work.title}
+                                        width={400}
+                                        height={600}
+                                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                                        loading="lazy"
+                                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
+                                      />
+                                    </div>
+                                    <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold text-white mb-2">{work.title}</h3>
                                   </div>
-                                  <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold text-white mb-2">{work.title}</h3>
                                 </div>
                               ))}
                             </div>
