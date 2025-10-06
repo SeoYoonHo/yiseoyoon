@@ -120,7 +120,7 @@ export default function ExhibitionImageModal({
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm transition-all duration-300 ${
+      className={`fixed inset-0 z-[60] bg-white/95 backdrop-blur-sm transition-all duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       onClick={onClose}
@@ -131,7 +131,7 @@ export default function ExhibitionImageModal({
           e.stopPropagation();
           onClose();
         }}
-        className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-sm cursor-pointer"
+        className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
         aria-label="Close modal"
       >
         <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -169,7 +169,7 @@ export default function ExhibitionImageModal({
               e.stopPropagation();
               onPrev();
             }}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl cursor-pointer"
+            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
             aria-label="Previous photo"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -185,7 +185,7 @@ export default function ExhibitionImageModal({
               e.stopPropagation();
               onNext();
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl cursor-pointer"
+            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
             aria-label="Next photo"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -197,7 +197,7 @@ export default function ExhibitionImageModal({
 
       {/* 사진 번호 표시 */}
       {photos.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/50 text-white px-4 py-2 rounded-full text-sm">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-700 text-sm">
           {currentImageIndex + 1} / {photos.length}
         </div>
       )}
