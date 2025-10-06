@@ -40,8 +40,15 @@ export async function GET() {
       const exhibitions = Object.values(metadata)
         .map((exhibition) => ({
           ...exhibition,
-          // S3 키를 전체 URL로 변환
-          photos: exhibition.photos.map((photoKey) => getS3ImageUrl(photoKey)),
+          // S3 키를 전체 URL로 변환 (이미 URL인 경우는 그대로 사용)
+          photos: exhibition.photos.map((photoKey) => {
+            // 이미 완전한 URL인 경우 그대로 반환
+            if (photoKey.startsWith('http')) {
+              return photoKey;
+            }
+            // S3 키인 경우 URL로 변환
+            return getS3ImageUrl(photoKey);
+          }),
         }))
         .sort((a, b) => new Date(b.startDate).getTime() - new Date(a.startDate).getTime());
 

@@ -14,9 +14,11 @@ interface Exhibition {
   createdAt: string;
 }
 
+
 export default function AdminExhibitionsPage() {
   const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
   
   // 새 전시 생성 상태
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -32,13 +34,100 @@ export default function AdminExhibitionsPage() {
 
   // 사진 업로드 상태
   const [selectedExhibitionId, setSelectedExhibitionId] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState('');
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // 사진 펼치기 상태
   const [expandedPhotos, setExpandedPhotos] = useState<Set<string>>(new Set());
+  
+  // 사진 순서 변경 상태
+  const [reorderingExhibition, setReorderingExhibition] = useState<string | null>(null);
+  const [selectedPhotoIndex, setSelectedPhotoIndex] = useState<number | null>(null);
+  const [originalPhotos, setOriginalPhotos] = useState<Record<string, string[]>>({});
+
+  // 사진 순서 변경 시작
+  const startReorder = (exhibitionId: string) => {
+    const exhibition = exhibitions.find(e => e.id === exhibitionId);
+    if (exhibition) {
+      // 원래 순서 저장
+      setOriginalPhotos(prev => ({
+        ...prev,
+        [exhibitionId]: [...exhibition.photos]
+      }));
+    }
+    setReorderingExhibition(exhibitionId);
+    setSelectedPhotoIndex(null);
+  };
+
+  // 사진 순서 변경 취소
+  const cancelReorder = () => {
+    if (reorderingExhibition) {
+      // 원래 순서로 복원
+      setExhibitions(prev => 
+        prev.map(e => 
+          e.id === reorderingExhibition 
+            ? { ...e, photos: originalPhotos[reorderingExhibition] || e.photos }
+            : e
+        )
+      );
+    }
+    setReorderingExhibition(null);
+    setSelectedPhotoIndex(null);
+  };
+
+  // 사진 순서를 서버에 저장하는 함수
+  const savePhotoOrder = async (exhibitionId: string, photoKeys: string[]) => {
+    try {
+      const response = await fetch('/api/exhibitions/reorder-photos', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          exhibitionId,
+          photoKeys,
+        }),
+      });
+
+      const result = await response.json();
+      if (!result.success) {
+        console.error('Failed to save photo order:', result.error);
+        // 실패 시 원래 상태로 복원
+        fetchExhibitions();
+      }
+    } catch (error) {
+      console.error('Save photo order error:', error);
+      // 에러 시 원래 상태로 복원
+      fetchExhibitions();
+    }
+  };
+
+  // 사진 순서 변경 (왼쪽/오른쪽 이동) - 로컬에서만 변경
+  const movePhoto = (exhibitionId: string, photoIndex: number, direction: 'left' | 'right') => {
+    const exhibition = exhibitions.find(e => e.id === exhibitionId);
+    if (!exhibition || photoIndex < 0 || photoIndex >= exhibition.photos.length) return;
+
+    const newIndex = direction === 'left' ? photoIndex - 1 : photoIndex + 1;
+    if (newIndex < 0 || newIndex >= exhibition.photos.length) return;
+
+    const newPhotos = [...exhibition.photos];
+    [newPhotos[photoIndex], newPhotos[newIndex]] = [newPhotos[newIndex], newPhotos[photoIndex]];
+
+    // 로컬 상태만 업데이트 (서버 저장은 완료 버튼에서)
+    setExhibitions(prev => 
+      prev.map(e => 
+        e.id === exhibitionId 
+          ? { ...e, photos: newPhotos }
+          : e
+      )
+    );
+
+    // 선택된 인덱스 업데이트
+    setSelectedPhotoIndex(newIndex);
+  };
 
   // 전시 목록 불러오기
   const fetchExhibitions = async () => {
@@ -91,9 +180,9 @@ export default function AdminExhibitionsPage() {
     }
   };
 
-  // 사진 업로드
-  const handlePhotoUpload = async (exhibitionId: string) => {
-    if (!selectedFile) {
+  // 다중 사진 업로드
+  const handleMultiPhotoUpload = async (exhibitionId: string) => {
+    if (selectedFiles.length === 0) {
       setUploadStatus('파일을 선택해주세요.');
       return;
     }
@@ -102,11 +191,13 @@ export default function AdminExhibitionsPage() {
     setUploadStatus('업로드 중...');
 
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    selectedFiles.forEach(file => {
+      formData.append('files', file);
+    });
     formData.append('exhibitionId', exhibitionId);
 
     try {
-      const response = await fetch('/api/exhibitions/upload-photo', {
+      const response = await fetch('/api/exhibitions/upload-photos-multi', {
         method: 'POST',
         body: formData,
       });
@@ -114,8 +205,9 @@ export default function AdminExhibitionsPage() {
       const result = await response.json();
 
       if (result.success) {
-        setUploadStatus('사진이 업로드되었습니다!');
-        setSelectedFile(null);
+        setUploadStatus(result.message);
+        setSelectedFiles([]);
+        setPreviewUrls([]);
         setSelectedExhibitionId(null);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
@@ -129,6 +221,27 @@ export default function AdminExhibitionsPage() {
       setUploadStatus('업로드 중 오류가 발생했습니다.');
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  // 파일 선택 처리
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, exhibitionId: string) => {
+    const files = Array.from(e.target.files || []);
+    setSelectedFiles(files);
+    setSelectedExhibitionId(exhibitionId);
+    
+    // 미리보기 URL 생성
+    const urls = files.map(file => URL.createObjectURL(file));
+    setPreviewUrls(urls);
+  };
+
+  // 선택된 파일들 제거
+  const handleRemoveFiles = () => {
+    setSelectedFiles([]);
+    setPreviewUrls([]);
+    setSelectedExhibitionId(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -529,25 +642,58 @@ export default function AdminExhibitionsPage() {
 
                 {/* 사진 업로드 */}
                 <div className="mb-4 p-4 bg-gray-50 rounded-md">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">사진 추가</h4>
-                  <div className="flex gap-2">
-                    <input
-                      ref={selectedExhibitionId === exhibition.id ? fileInputRef : null}
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        setSelectedFile(e.target.files?.[0] || null);
-                        setSelectedExhibitionId(exhibition.id);
-                      }}
-                      className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
-                    />
-                    <button
-                      onClick={() => handlePhotoUpload(exhibition.id)}
-                      disabled={!selectedFile || selectedExhibitionId !== exhibition.id || isUploading}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
-                    >
-                      {isUploading && selectedExhibitionId === exhibition.id ? '업로드 중...' : '업로드'}
-                    </button>
+                  <h4 className="text-sm font-semibold text-gray-700 mb-2">사진 추가 (여러 장 선택 가능)</h4>
+                  <div className="space-y-3">
+                    <div className="flex gap-2">
+                      <input
+                        ref={selectedExhibitionId === exhibition.id ? fileInputRef : null}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={(e) => handleFileSelect(e, exhibition.id)}
+                        className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                      />
+                      {selectedFiles.length > 0 && selectedExhibitionId === exhibition.id && (
+                        <button
+                          onClick={handleRemoveFiles}
+                          className="px-3 py-2 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 transition-all"
+                        >
+                          취소
+                        </button>
+                      )}
+                    </div>
+                    
+                    {/* 선택된 파일 미리보기 */}
+                    {selectedFiles.length > 0 && selectedExhibitionId === exhibition.id && (
+                      <div className="space-y-2">
+                        <p className="text-sm text-gray-600">
+                          선택된 파일: {selectedFiles.length}개
+                        </p>
+                        <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+                          {previewUrls.map((url, index) => (
+                            <div key={index} className="relative">
+                              <Image
+                                src={url}
+                                alt={`Preview ${index + 1}`}
+                                width={80}
+                                height={80}
+                                className="w-20 h-20 object-cover rounded border"
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleMultiPhotoUpload(exhibition.id)}
+                        disabled={selectedFiles.length === 0 || selectedExhibitionId !== exhibition.id || isUploading}
+                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                      >
+                        {isUploading && selectedExhibitionId === exhibition.id ? '업로드 중...' : `${selectedFiles.length > 0 ? `${selectedFiles.length}개 ` : ''}업로드`}
+                      </button>
+                    </div>
                   </div>
                   {uploadStatus && selectedExhibitionId === exhibition.id && (
                     <p className="text-sm mt-2 text-gray-600">{uploadStatus}</p>
@@ -556,9 +702,47 @@ export default function AdminExhibitionsPage() {
 
                 {/* 사진 목록 */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">
-                    전시 사진 ({exhibition.photos.length})
-                  </h4>
+                  <div className="flex justify-between items-center mb-3">
+                    <h4 className="text-sm font-semibold text-gray-700">
+                      전시 사진 ({exhibition.photos.length})
+                    </h4>
+                    {exhibition.photos.length > 1 && (
+                      <div className="flex gap-2">
+                        {reorderingExhibition === exhibition.id ? (
+                          <>
+                            <button
+                              onClick={cancelReorder}
+                              className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-all"
+                            >
+                              취소
+                            </button>
+                            <button
+                              onClick={() => {
+                                // 서버에 최종 순서 저장
+                                const exhibition = exhibitions.find(e => e.id === reorderingExhibition);
+                                if (exhibition) {
+                                  savePhotoOrder(exhibition.id, exhibition.photos);
+                                }
+                                setReorderingExhibition(null);
+                                setSelectedPhotoIndex(null);
+                              }}
+                              className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-all"
+                            >
+                              완료
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => startReorder(exhibition.id)}
+                            className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-all"
+                          >
+                            순서 변경
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
                   {exhibition.photos.length === 0 ? (
                     <p className="text-sm text-gray-500">아직 업로드된 사진이 없습니다.</p>
                   ) : (
@@ -571,7 +755,11 @@ export default function AdminExhibitionsPage() {
                         {expandedPhotos.has(exhibition.id) 
                           ? exhibition.photos.map((photoUrl, index) => (
                               <div key={index} className="relative group">
-                                <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                                <div className={`relative aspect-square rounded-lg overflow-hidden bg-gray-100 ${
+                                  reorderingExhibition === exhibition.id && selectedPhotoIndex === index
+                                    ? 'ring-2 ring-blue-500'
+                                    : ''
+                                }`}>
                                   <Image
                                     src={photoUrl}
                                     alt={`${exhibition.title} photo ${index + 1}`}
@@ -579,7 +767,47 @@ export default function AdminExhibitionsPage() {
                                     className="object-cover"
                                     sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                                   />
+                                  
+                                  {/* 순서 변경 모드에서 사진 선택 */}
+                                  {reorderingExhibition === exhibition.id && (
+                                    <button
+                                      onClick={() => setSelectedPhotoIndex(selectedPhotoIndex === index ? null : index)}
+                                      className={`absolute inset-0 flex items-center justify-center ${
+                                        selectedPhotoIndex === index
+                                          ? 'bg-blue-500/50'
+                                          : 'bg-black/0 hover:bg-black/20'
+                                      } transition-all`}
+                                    >
+                                      {selectedPhotoIndex === index && (
+                                        <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                                          선택됨
+                                        </div>
+                                      )}
+                                    </button>
+                                  )}
                                 </div>
+                                
+                                {/* 순서 변경 버튼들 */}
+                                {reorderingExhibition === exhibition.id && selectedPhotoIndex === index && (
+                                  <div className="absolute inset-0 flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => movePhoto(exhibition.id, index, 'left')}
+                                      disabled={index === 0}
+                                      className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                      ←
+                                    </button>
+                                    <button
+                                      onClick={() => movePhoto(exhibition.id, index, 'right')}
+                                      disabled={index === exhibition.photos.length - 1}
+                                      className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                      →
+                                    </button>
+                                  </div>
+                                )}
+                                
+                                {/* 삭제 버튼 */}
                                 <button
                                   onClick={() => handleDeletePhoto(exhibition.id, photoUrl)}
                                   className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
@@ -593,7 +821,11 @@ export default function AdminExhibitionsPage() {
                             ))
                           : exhibition.photos.slice(0, 4).map((photoUrl, index) => (
                               <div key={index} className="relative group">
-                                <div className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                                <div className={`relative aspect-square rounded-lg overflow-hidden bg-gray-100 ${
+                                  reorderingExhibition === exhibition.id && selectedPhotoIndex === index
+                                    ? 'ring-2 ring-blue-500'
+                                    : ''
+                                }`}>
                                   <Image
                                     src={photoUrl}
                                     alt={`${exhibition.title} photo ${index + 1}`}
@@ -601,7 +833,47 @@ export default function AdminExhibitionsPage() {
                                     className="object-cover"
                                     sizes="(max-width: 640px) 25vw, 25vw"
                                   />
+                                  
+                                  {/* 순서 변경 모드에서 사진 선택 */}
+                                  {reorderingExhibition === exhibition.id && (
+                                    <button
+                                      onClick={() => setSelectedPhotoIndex(selectedPhotoIndex === index ? null : index)}
+                                      className={`absolute inset-0 flex items-center justify-center ${
+                                        selectedPhotoIndex === index
+                                          ? 'bg-blue-500/50'
+                                          : 'bg-black/0 hover:bg-black/20'
+                                      } transition-all`}
+                                    >
+                                      {selectedPhotoIndex === index && (
+                                        <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                                          선택됨
+                                        </div>
+                                      )}
+                                    </button>
+                                  )}
                                 </div>
+                                
+                                {/* 순서 변경 버튼들 */}
+                                {reorderingExhibition === exhibition.id && selectedPhotoIndex === index && (
+                                  <div className="absolute inset-0 flex items-center justify-center gap-2">
+                                    <button
+                                      onClick={() => movePhoto(exhibition.id, index, 'left')}
+                                      disabled={index === 0}
+                                      className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                      ←
+                                    </button>
+                                    <button
+                                      onClick={() => movePhoto(exhibition.id, index, 'right')}
+                                      disabled={index === exhibition.photos.length - 1}
+                                      className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                                    >
+                                      →
+                                    </button>
+                                  </div>
+                                )}
+                                
+                                {/* 삭제 버튼 */}
                                 <button
                                   onClick={() => handleDeletePhoto(exhibition.id, photoUrl)}
                                   className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"

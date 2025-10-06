@@ -28,6 +28,27 @@ export default function ExhibitionImageModal({
   const [imageLoaded, setImageLoaded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(currentIndex);
 
+  // 썸네일 경로를 원본 경로로 변환하는 함수
+  const getOriginalImageUrl = (thumbnailUrl: string) => {
+    // URL이 비어있거나 유효하지 않은 경우 그대로 반환
+    if (!thumbnailUrl || typeof thumbnailUrl !== 'string') {
+      return thumbnailUrl;
+    }
+    
+    // 이미 완전한 URL인 경우, Thumbnail을 Original로 교체
+    if (thumbnailUrl.includes('/Thumbnail/')) {
+      return thumbnailUrl.replace('/Thumbnail/', '/Original/');
+    }
+    
+    // S3 키만 있는 경우, Original 경로로 변환
+    if (thumbnailUrl.includes('Thumbnail/')) {
+      return thumbnailUrl.replace('Thumbnail/', 'Original/');
+    }
+    
+    // 변환할 수 없는 경우 원본 반환
+    return thumbnailUrl;
+  };
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -131,7 +152,7 @@ export default function ExhibitionImageModal({
           >
             <Image
               key={`image-${currentImageIndex}`}
-              src={photos[currentImageIndex]}
+              src={getOriginalImageUrl(photos[currentImageIndex])}
               alt={`${title} - ${currentImageIndex + 1}/${photos.length}`}
               fill
               className="object-contain"

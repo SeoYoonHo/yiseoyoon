@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, S3_BUCKET, getS3ImageUrl } from '@/lib/s3';
+import sharp from 'sharp';
 
 interface Exhibition {
   id: string;
@@ -52,27 +53,52 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Exhibition not found' }, { status: 404 });
     }
 
-    // 파일명 생성 (타임스탬프 + 원본 확장자)
-    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const photoFilename = `photo_${Date.now()}.${fileExtension}`;
-    const photoKey = `Exhibitions/${exhibitionId}/${photoFilename}`;
+    // 파일명 생성 (타임스탬프 + jpg)
+    const photoFilename = `photo_${Date.now()}.jpg`;
+    const originalKey = `Exhibitions/${exhibitionId}/Original/${photoFilename}`;
+    const thumbnailKey = `Exhibitions/${exhibitionId}/Thumbnail/${photoFilename}`;
 
-    // S3에 사진 업로드
+    // 원본 이미지 처리
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const originalBuffer = Buffer.from(arrayBuffer);
 
-    const uploadCommand = new PutObjectCommand({
+    // 썸네일 생성 (600x600px, 품질 95%)
+    const thumbnailBuffer = await sharp(originalBuffer)
+      .resize(600, 600, { 
+        fit: 'cover',
+        position: 'center'
+      })
+      .jpeg({ 
+        quality: 95,
+        progressive: true
+      })
+      .toBuffer();
+
+    // 원본 이미지 업로드
+    const originalUploadCommand = new PutObjectCommand({
       Bucket: S3_BUCKET,
-      Key: photoKey,
-      Body: buffer,
+      Key: originalKey,
+      Body: originalBuffer,
       ContentType: file.type,
       CacheControl: 'public, max-age=31536000, immutable',
     });
 
-    await s3Client.send(uploadCommand);
+    // 썸네일 이미지 업로드
+    const thumbnailUploadCommand = new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: thumbnailKey,
+      Body: thumbnailBuffer,
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=31536000, immutable',
+    });
 
-    // 메타데이터에 사진 추가
-    metadata[exhibitionId].photos.push(photoKey);
+    await Promise.all([
+      s3Client.send(originalUploadCommand),
+      s3Client.send(thumbnailUploadCommand)
+    ]);
+
+    // 메타데이터에 썸네일 키 추가 (캐러셀에서는 썸네일 사용)
+    metadata[exhibitionId].photos.push(thumbnailKey);
 
     // 업데이트된 metadata.json 업로드
     const putMetadataCommand = new PutObjectCommand({
@@ -87,8 +113,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      photoUrl: getS3ImageUrl(photoKey),
-      photoKey,
+      photoUrl: getS3ImageUrl(thumbnailKey),
+      photoKey: thumbnailKey,
       message: 'Photo uploaded successfully',
     });
 
