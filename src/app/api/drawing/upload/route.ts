@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
-    const date = formData.get('date') as string;
+    const year = formData.get('year') as string;
     const description = formData.get('description') as string;
 
     if (!file) {
@@ -41,7 +41,9 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const originalKey = `Works/Drawing/Original/${timestamp}.${fileExtension}`;
-    const thumbnailKey = `Works/Drawing/Thumbnail/${timestamp}.jpg`;
+    const thumbnailSmallKey = `Works/Drawing/Thumbnail/Small/${timestamp}.jpg`;
+    const thumbnailMediumKey = `Works/Drawing/Thumbnail/Medium/${timestamp}.jpg`;
+    const thumbnailLargeKey = `Works/Drawing/Thumbnail/Large/${timestamp}.jpg`;
 
     // 원본 이미지 업로드
     const originalUploadCommand = new PutObjectCommand({
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
       ContentType: file.type,
       Metadata: {
         title: sanitizeMetadataValue(title || ''),
-        date: sanitizeMetadataValue(date || ''),
+        year: sanitizeMetadataValue(year || ''),
         description: sanitizeMetadataValue(description || ''),
         category: sanitizeMetadataValue('drawing'),
         uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
@@ -60,40 +62,51 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(originalUploadCommand);
 
-    // 썸네일 생성 및 업로드
-    const thumbnailBuffer = await sharp(buffer)
-      .resize(400, 400, { 
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .jpeg({ quality: 85 })
-      .toBuffer();
+    // 반응형 썸네일 생성 및 업로드
+    const thumbnailSizes = [
+      { key: thumbnailSmallKey, size: 300, name: 'Small' },
+      { key: thumbnailMediumKey, size: 500, name: 'Medium' },
+      { key: thumbnailLargeKey, size: 800, name: 'Large' }
+    ];
 
-    const thumbnailUploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: thumbnailKey,
-      Body: thumbnailBuffer,
-      ContentType: 'image/jpeg',
-      Metadata: {
-        title: sanitizeMetadataValue(title || ''),
-        date: sanitizeMetadataValue(date || ''),
-        description: sanitizeMetadataValue(description || ''),
-        category: sanitizeMetadataValue('drawing'),
-        uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
-        isThumbnail: 'true',
-      },
-    });
+    for (const { key, size, name } of thumbnailSizes) {
+      const thumbnailBuffer = await sharp(buffer)
+        .resize(size, size, { 
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: 90 })
+        .toBuffer();
 
-    await s3Client.send(thumbnailUploadCommand);
+      const thumbnailUploadCommand = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: thumbnailBuffer,
+        ContentType: 'image/jpeg',
+        Metadata: {
+          title: sanitizeMetadataValue(title || ''),
+          year: sanitizeMetadataValue(year || ''),
+          description: sanitizeMetadataValue(description || ''),
+          category: sanitizeMetadataValue('drawing'),
+          uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
+          isThumbnail: 'true',
+          thumbnailSize: name,
+        },
+      });
+
+      await s3Client.send(thumbnailUploadCommand);
+    }
 
     // 메타데이터 파일 업데이트
     const metadata = {
       id: timestamp.toString(),
       title: title || '',
-      date: date || '',
+      year: year || '',
       description: description || '',
       originalImage: originalKey,
-      thumbnailImage: thumbnailKey,
+      thumbnailSmall: thumbnailSmallKey,
+      thumbnailMedium: thumbnailMediumKey,
+      thumbnailLarge: thumbnailLargeKey,
       category: 'drawing',
       createdAt: new Date().toISOString(),
     };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 const backgroundTabs = [
   { id: 'Home', name: 'Home', folder: 'Home' },
@@ -208,10 +209,14 @@ export default function AdminBackgroundsPage() {
                 ) : currentBackgroundUrl ? (
                   <div className="space-y-3">
                     <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-                      <img
+                      <Image
                         src={currentBackgroundUrl}
                         alt={`${currentTab?.name} 배경 이미지`}
+                        width={400}
+                        height={192}
                         className="max-w-full max-h-full object-contain"
+                        loading="lazy"
+                        sizes="400px"
                       />
                     </div>
                     <div className="text-sm text-gray-600">

@@ -14,8 +14,8 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
 
   const navItems = [
     { href: '/admin', label: 'Home' },
-    { href: '/admin/works', label: 'Works' },
-    { href: '/admin/exhibitions', label: 'Exhibitions' },
+    { href: '/admin/works', label: 'Work' },
+    { href: '/admin/exhibitions', label: 'Exhibition' },
     { href: '/admin/text', label: 'Text' },
     { href: '/admin/cv', label: 'CV' },
     { href: '/admin/contact', label: 'Contact' },
@@ -41,7 +41,7 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
           </Link>
           <div className="hidden md:flex space-x-8">
             {navItems.map((item) => (
-              item.label === 'Works' ? (
+              item.label === 'Work' ? (
                 <div
                   key={item.href}
                   className="relative flex"
@@ -59,7 +59,7 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
                     {item.label}
                   </Link>
                   
-                  {/* Works 드롭다운 메뉴 */}
+                  {/* Work 드롭다운 메뉴 */}
                   {isWorksDropdownOpen && (
                     <div className="absolute top-full left-0 bg-gray-700 rounded-md shadow-lg z-50 min-w-[120px]">
                       <Link

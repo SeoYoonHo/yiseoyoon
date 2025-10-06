@@ -101,33 +101,33 @@ export default function ImageModal({
         </button>
 
         {/* 이미지와 정보를 함께 표시 */}
-        <div className="flex flex-col items-center justify-center h-full px-24 py-16">
-          <div className="relative max-w-7xl max-h-[70vh] w-full">
+        <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-24 py-8 sm:py-12 md:py-16">
+          <div className="relative max-w-7xl w-full h-full flex items-center justify-center">
             <Image
               src={images[currentIndex]}
               alt={`${title} - ${currentIndex + 1}/${images.length}`}
               width={1400}
               height={900}
-              className="w-full h-auto object-contain"
+              className="max-w-full max-h-[80vh] w-auto h-auto object-contain"
               sizes="(max-width: 1536px) 90vw, 1400px"
               priority
             />
           </div>
 
           {/* 정보 영역 - 이미지 바로 아래 */}
-          <div className="w-full max-w-4xl mt-6">
-            <h2 className="text-xl font-semibold text-white mb-2 text-center">{title}</h2>
+          <div className="w-full max-w-4xl mt-4 sm:mt-6 px-4">
+            <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 text-center">{title}</h2>
 
-            {subtitle && <p className="text-sm text-white/70 mb-3 text-center">{subtitle}</p>}
+            {subtitle && <p className="text-xs sm:text-sm text-white/70 mb-3 text-center">{subtitle}</p>}
 
             {description && (
-              <p className="text-sm text-white/80 leading-relaxed whitespace-pre-wrap text-center">{description}</p>
+              <p className="text-xs sm:text-sm text-white/80 leading-relaxed whitespace-pre-wrap text-center">{description}</p>
             )}
 
             {/* 이미지 번호 표시 */}
             {images.length > 1 && (
-              <div className="mt-4 text-center">
-                <span className="inline-block bg-white/10 text-white px-4 py-2 rounded-full text-sm">
+              <div className="mt-3 sm:mt-4 text-center">
+                <span className="inline-block bg-white/10 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm">
                   {currentIndex + 1} / {images.length}
                 </span>
               </div>
@@ -138,10 +138,10 @@ export default function ImageModal({
           {showNavigation && (
             <button
               onClick={onPrev}
-              className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
+              className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
               aria-label="Previous image"
             >
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
             </button>
@@ -151,10 +151,10 @@ export default function ImageModal({
           {showNavigation && (
             <button
               onClick={onNext}
-              className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
+              className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
               aria-label="Next image"
             >
-              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </button>

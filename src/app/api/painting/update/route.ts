@@ -13,14 +13,14 @@ const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
 export async function PUT(request: NextRequest) {
   try {
-    const { id, title, date, description } = await request.json();
+    const { id, title, year, description } = await request.json();
 
     if (!id) {
       return NextResponse.json({ success: false, error: 'ID가 제공되지 않았습니다.' }, { status: 400 });
     }
 
-    if (!title || !date) {
-      return NextResponse.json({ success: false, error: '제목과 날짜는 필수 입력 항목입니다.' }, { status: 400 });
+    if (!title || !year) {
+      return NextResponse.json({ success: false, error: '제목과 연도는 필수 입력 항목입니다.' }, { status: 400 });
     }
 
     const metadataKey = 'Works/Painting/metadata.json';
@@ -54,7 +54,7 @@ export async function PUT(request: NextRequest) {
     artworks[artworkIndex] = {
       ...artworks[artworkIndex],
       title,
-      date,
+      year,
       description: description || '',
       updatedAt: new Date().toISOString(),
     };

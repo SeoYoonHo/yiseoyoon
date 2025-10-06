@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, ListObjectsV2Command, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, S3_BUCKET, getS3ImageUrl } from '@/lib/s3';
+import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,23 +46,37 @@ export async function POST(request: NextRequest) {
       // 삭제 실패해도 계속 진행
     }
 
-    // 2. 새 파일 업로드 (파일명을 background로 고정하고 원본 확장자 유지)
-    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const key = `${folder}/background.${fileExtension}`;
+    // 2. 새 파일 업로드 (배경용으로 최적화된 크기로 리사이즈)
+    const key = `${folder}/background.jpg`;
 
     // 파일을 ArrayBuffer로 변환
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const originalBuffer = Buffer.from(arrayBuffer);
 
-    // S3에 직접 업로드 (캐시 헤더 포함)
+    // 배경용으로 최적화된 크기로 리사이즈 (1920x1080, 품질 80%)
+    const optimizedBuffer = await sharp(originalBuffer)
+      .resize(1920, 1080, { 
+        fit: 'cover', // 비율 유지하면서 크롭
+        position: 'center' // 중앙 기준으로 크롭
+      })
+      .jpeg({ 
+        quality: 80, // 배경용으로는 80% 품질이면 충분
+        progressive: true // 점진적 로딩
+      })
+      .toBuffer();
+
+    // S3에 최적화된 이미지 업로드
     const command = new PutObjectCommand({
       Bucket: S3_BUCKET,
       Key: key,
-      Body: buffer,
-      ContentType: file.type,
-      CacheControl: 'public, max-age=0, must-revalidate', // 캐시 비활성화
+      Body: optimizedBuffer,
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=31536000, immutable', // 1년 캐시
       Metadata: {
         'upload-timestamp': new Date().toISOString(),
+        'optimized': 'true',
+        'original-size': originalBuffer.length.toString(),
+        'optimized-size': optimizedBuffer.length.toString(),
       },
     });
 

@@ -29,8 +29,8 @@ export default function NavBar() {
 
   const navItems = [
     { href: '/site/home', label: 'Home' },
-    { href: '/site/works', label: 'Works' },
-    { href: '/site/exhibitions', label: 'Exhibitions' },
+    { href: '/site/works', label: 'Work' },
+    { href: '/site/exhibitions', label: 'Exhibition' },
     { href: '/site/text', label: 'Text' },
     { href: '/site/cv', label: 'CV' },
     { href: '/site/contact', label: 'Contact' },
@@ -55,7 +55,7 @@ export default function NavBar() {
           </Link>
           <div className="hidden sm:flex space-x-2 md:space-x-4 lg:space-x-6 xl:space-x-8">
             {navItems.map((item) => (
-              item.label === 'Works' ? (
+              item.label === 'Work' ? (
                 <div
                   key={item.href}
                   className="relative flex"
@@ -73,7 +73,7 @@ export default function NavBar() {
                     {item.label}
                   </Link>
                   
-                  {/* Works 드롭다운 메뉴 */}
+                  {/* Work 드롭다운 메뉴 */}
                   {isWorksDropdownOpen && (
                     <div className="absolute top-full left-0 bg-black/90 backdrop-blur-md rounded-md shadow-lg z-50 min-w-[120px]">
                       <Link
@@ -156,7 +156,7 @@ export default function NavBar() {
           <div className="sm:hidden bg-black/40 backdrop-blur-md border-t border-white/20">
             <div className="px-4 py-4 space-y-2">
               {navItems.map((item) => (
-                item.label === 'Works' ? (
+                item.label === 'Work' ? (
                   <div key={item.href} className="space-y-1">
                     <Link
                       href={item.href}

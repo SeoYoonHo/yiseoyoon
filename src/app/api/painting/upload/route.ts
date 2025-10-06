@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
 const s3Client = new S3Client({
@@ -12,7 +12,6 @@ const s3Client = new S3Client({
 
 const BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME!;
 
-
 function sanitizeMetadataValue(value: string): string {
   return value.replace(/[^\x20-\x7E]/g, '');
 }
@@ -22,7 +21,7 @@ export async function POST(request: NextRequest) {
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
-    const date = formData.get('date') as string;
+    const year = formData.get('year') as string;
     const description = formData.get('description') as string;
 
     if (!file) {
@@ -41,7 +40,9 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const originalKey = `Works/Painting/Original/${timestamp}.${fileExtension}`;
-    const thumbnailKey = `Works/Painting/Thumbnail/${timestamp}.jpg`;
+    const thumbnailSmallKey = `Works/Painting/Thumbnail/Small/${timestamp}.jpg`;
+    const thumbnailMediumKey = `Works/Painting/Thumbnail/Medium/${timestamp}.jpg`;
+    const thumbnailLargeKey = `Works/Painting/Thumbnail/Large/${timestamp}.jpg`;
 
     // 원본 이미지 업로드
     const originalUploadCommand = new PutObjectCommand({
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       ContentType: file.type,
       Metadata: {
         title: sanitizeMetadataValue(title || ''),
-        date: sanitizeMetadataValue(date || ''),
+        year: sanitizeMetadataValue(year || ''),
         description: sanitizeMetadataValue(description || ''),
         category: sanitizeMetadataValue('painting'),
         uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
@@ -60,40 +61,51 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(originalUploadCommand);
 
-    // 썸네일 생성 및 업로드
-    const thumbnailBuffer = await sharp(buffer)
-      .resize(400, 400, { 
-        fit: 'inside',
-        withoutEnlargement: true
-      })
-      .jpeg({ quality: 85 })
-      .toBuffer();
+    // 반응형 썸네일 생성 및 업로드
+    const thumbnailSizes = [
+      { key: thumbnailSmallKey, size: 300, name: 'Small' },
+      { key: thumbnailMediumKey, size: 500, name: 'Medium' },
+      { key: thumbnailLargeKey, size: 800, name: 'Large' }
+    ];
 
-    const thumbnailUploadCommand = new PutObjectCommand({
-      Bucket: BUCKET_NAME,
-      Key: thumbnailKey,
-      Body: thumbnailBuffer,
-      ContentType: 'image/jpeg',
-      Metadata: {
-        title: sanitizeMetadataValue(title || ''),
-        date: sanitizeMetadataValue(date || ''),
-        description: sanitizeMetadataValue(description || ''),
-        category: sanitizeMetadataValue('painting'),
-        uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
-        isThumbnail: 'true',
-      },
-    });
+    for (const { key, size, name } of thumbnailSizes) {
+      const thumbnailBuffer = await sharp(buffer)
+        .resize(size, size, { 
+          fit: 'inside',
+          withoutEnlargement: true
+        })
+        .jpeg({ quality: 90 })
+        .toBuffer();
 
-    await s3Client.send(thumbnailUploadCommand);
+      const thumbnailUploadCommand = new PutObjectCommand({
+        Bucket: BUCKET_NAME,
+        Key: key,
+        Body: thumbnailBuffer,
+        ContentType: 'image/jpeg',
+        Metadata: {
+          title: sanitizeMetadataValue(title || ''),
+          year: sanitizeMetadataValue(year || ''),
+          description: sanitizeMetadataValue(description || ''),
+          category: sanitizeMetadataValue('painting'),
+          uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
+          isThumbnail: 'true',
+          thumbnailSize: sanitizeMetadataValue(name),
+        },
+      });
+
+      await s3Client.send(thumbnailUploadCommand);
+    }
 
     // 메타데이터 파일 업데이트
     const metadata = {
       id: timestamp.toString(),
       title: title || '',
-      date: date || '',
+      year: year || '',
       description: description || '',
       originalImage: originalKey,
-      thumbnailImage: thumbnailKey,
+      thumbnailSmall: thumbnailSmallKey,
+      thumbnailMedium: thumbnailMediumKey,
+      thumbnailLarge: thumbnailLargeKey,
       category: 'painting',
       createdAt: new Date().toISOString(),
     };
@@ -103,7 +115,6 @@ export async function POST(request: NextRequest) {
     // 기존 메타데이터 불러오기
     let existingMetadata = [];
     try {
-      const { GetObjectCommand } = await import('@aws-sdk/client-s3');
       const getCommand = new GetObjectCommand({
         Bucket: BUCKET_NAME,
         Key: metadataKey,
@@ -114,7 +125,6 @@ export async function POST(request: NextRequest) {
         existingMetadata = JSON.parse(existingData);
       }
     } catch (error) {
-      // 파일이 없으면 빈 배열로 시작
       console.log('메타데이터 파일이 없습니다. 새로 생성합니다.');
     }
 

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import ContentTransition from '@/components/ContentTransition';
 import { useState, useEffect } from 'react';
 
@@ -60,10 +61,13 @@ export default function WorksPage() {
                 >
                   <div className="aspect-[3/4] relative">
                     {cardImages.painting ? (
-                      <img
+                      <Image
                         src={cardImages.painting}
                         alt="Painting"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                       />
                     ) : (
                       <div className="w-full h-full"></div>
@@ -84,10 +88,13 @@ export default function WorksPage() {
                 >
                   <div className="aspect-[3/4] relative">
                     {cardImages.drawing ? (
-                      <img
+                      <Image
                         src={cardImages.drawing}
                         alt="Drawing"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                       />
                     ) : (
                       <div className="w-full h-full"></div>

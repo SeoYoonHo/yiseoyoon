@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function AdminWorksPage() {
   const [selectedPaintingFile, setSelectedPaintingFile] = useState<File | null>(null);
@@ -234,11 +235,14 @@ export default function AdminWorksPage() {
               {paintingPreviewUrl && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex gap-4">
-                    <div className="w-48 h-48 flex-shrink-0">
-                      <img 
+                    <div className="w-48 h-48 flex-shrink-0 relative">
+                      <Image 
                         src={paintingPreviewUrl} 
                         alt="Preview" 
-                        className="w-full h-full object-cover rounded-lg"
+                        fill
+                        className="object-cover rounded-lg"
+                        loading="lazy"
+                        sizes="192px"
                       />
                     </div>
                     <div className="flex-1">
@@ -297,11 +301,14 @@ export default function AdminWorksPage() {
               {drawingPreviewUrl && (
                 <div className="bg-gray-50 rounded-lg p-4">
                   <div className="flex gap-4">
-                    <div className="w-48 h-48 flex-shrink-0">
-                      <img 
+                    <div className="w-48 h-48 flex-shrink-0 relative">
+                      <Image 
                         src={drawingPreviewUrl} 
                         alt="Preview" 
-                        className="w-full h-full object-cover rounded-lg"
+                        fill
+                        className="object-cover rounded-lg"
+                        loading="lazy"
+                        sizes="192px"
                       />
                     </div>
                     <div className="flex-1">
@@ -356,10 +363,13 @@ export default function AdminWorksPage() {
               >
                 <div className="aspect-[3/4] relative max-w-md">
                   {cardImages.painting ? (
-                    <img
+                    <Image
                       src={cardImages.painting}
                       alt="Painting Card"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -391,10 +401,13 @@ export default function AdminWorksPage() {
               >
                 <div className="aspect-[3/4] relative max-w-md">
                   {cardImages.drawing ? (
-                    <img
+                    <Image
                       src={cardImages.drawing}
                       alt="Drawing Card"
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      fill
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

@@ -1,16 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import ContentTransition from '@/components/ContentTransition';
 import ImageModal from '@/components/ImageModal';
+import { getResponsiveThumbnail } from '@/lib/thumbnail';
 
 interface Work {
   id: string;
   title: string;
-  date: string;
+  year: string;
   description: string;
   originalImage: string;
-  thumbnailImage: string;
+  thumbnailImage?: string; // 기존 호환성
+  thumbnailSmall: string;
+  thumbnailMedium: string;
+  thumbnailLarge: string;
   category: string;
   createdAt: string;
 }
@@ -37,9 +42,9 @@ export default function DrawingPage() {
         const data = await response.json();
         
         if (data.success) {
-          // 날짜순으로 정렬 (최신순)
+          // 연도순으로 정렬 (최신순)
           const sortedWorks = (data.works || []).sort((a: Work, b: Work) => 
-            new Date(b.date).getTime() - new Date(a.date).getTime()
+            parseInt(b.year) - parseInt(a.year)
           );
           setWorks(sortedWorks);
         } else {
@@ -72,7 +77,7 @@ export default function DrawingPage() {
       images: [work.originalImage],
       currentIndex: 0,
       title: work.title,
-      subtitle: work.date,
+      subtitle: work.year,
       description: work.description,
     });
   };
@@ -141,18 +146,18 @@ export default function DrawingPage() {
 
               {!isLoading && !error && works.length > 0 && (
                 <div className="flex flex-col lg:flex-row gap-8">
-                     {/* 왼쪽 타임라인 */}
-                     <div className="lg:w-32">
+                     {/* 왼쪽 타임라인 - 데스크톱에서만 표시 */}
+                     <div className="hidden lg:block lg:w-32">
                        <div className="sticky top-24">
                          {/* 타임라인 연도 */}
                          <div className="flex flex-col items-center bg-black/20 backdrop-blur-md rounded-lg p-6 gap-8">
-                           {Array.from(new Set(works.map(work => work.date.split('-')[0])))
-                             .sort((a, b) => b.localeCompare(a))
+                           {Array.from(new Set(works.map(work => work.year)))
+                             .sort((a, b) => parseInt(b) - parseInt(a))
                              .map((year) => (
                                <button
                                  key={year}
                                  onClick={() => handleYearClick(year)}
-                                 className={`text-xl font-bold transition-all duration-300 hover:scale-105 px-4 py-2 rounded-lg ${
+                                 className={`text-lg sm:text-xl font-bold transition-all duration-300 hover:scale-105 px-3 sm:px-4 py-2 rounded-lg ${
                                    activeYear === year 
                                      ? 'text-black bg-white/90 shadow-lg' 
                                      : 'text-white/80 hover:text-white hover:bg-white/20'
@@ -165,18 +170,18 @@ export default function DrawingPage() {
                        </div>
                      </div>
 
-                  {/* 오른쪽 작품 그리드 */}
+                  {/* 작품 그리드 */}
                   <div className="flex-1">
                     {/* 연도별 그룹화 */}
-                    {Array.from(new Set(works.map(work => work.date.split('-')[0])))
-                      .sort((a, b) => b.localeCompare(a))
+                    {Array.from(new Set(works.map(work => work.year)))
+                      .sort((a, b) => parseInt(b) - parseInt(a))
                       .map(year => {
-                        const yearWorks = works.filter(work => work.date.startsWith(year));
+                        const yearWorks = works.filter(work => work.year === year);
                         return (
                           <div key={year} id={`year-${year}`} className="mb-12">
                             {/* 연도 헤더 */}
                             <div className="mb-6">
-                              <h2 className="text-2xl font-bold text-white mb-2">{year}</h2>
+                              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">{year}</h2>
                               <div className="w-16 h-0.5 bg-white/40"></div>
                             </div>
                             
@@ -188,16 +193,23 @@ export default function DrawingPage() {
                                   className="group cursor-pointer break-inside-avoid mb-6"
                                   onClick={() => handleWorkClick(work)}
                                 >
-                                  <div className="bg-gray-200 rounded-lg mb-4 overflow-hidden">
-                                    <img 
-                                      src={work.thumbnailImage} 
+                                  <div className="bg-gray-200 rounded-lg mb-4 overflow-hidden relative">
+                                    <Image
+                                      src={getResponsiveThumbnail(
+                                        work.thumbnailSmall,
+                                        work.thumbnailMedium,
+                                        work.thumbnailLarge,
+                                        work.thumbnailImage
+                                      )}
                                       alt={work.title}
+                                      width={400}
+                                      height={600}
                                       className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                                      loading="lazy"
+                                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                                     />
                                   </div>
-                                  <h3 className="text-lg font-semibold text-white mb-2">{work.title}</h3>
-                                  <p className="text-sm text-white/70 mb-1">{work.date}</p>
-                                  <p className="text-white/80 text-sm line-clamp-2">{work.description}</p>
+                                  <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold text-white mb-2">{work.title}</h3>
                                 </div>
                               ))}
                             </div>
