@@ -205,7 +205,7 @@ export default function AdminWorksPage() {
   return (
     <div className="w-full px-6 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Works 관리</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-8">Admin - Works 관리</h1>
         
         {/* 카드 이미지 업로드 섹션 */}
         <div className="border-b border-gray-200 pb-8 mb-8">
@@ -357,14 +357,14 @@ export default function AdminWorksPage() {
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-6">Works 카테고리 관리</h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
             {/* Painting */}
-            <div className="flex justify-end">
+            <div className="flex justify-center sm:justify-end">
               <Link
                 href="/admin/works/painting"
-                className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300 inline-block"
+                className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300 inline-block w-full max-w-sm"
               >
-                <div className="aspect-[3/4] relative max-w-md w-full h-full min-h-[300px]">
+                <div className="aspect-[3/4] relative w-full h-full min-h-[250px] sm:min-h-[300px]">
                   {cardImages.painting ? (
                     <>
                       <Image
@@ -418,12 +418,12 @@ export default function AdminWorksPage() {
             </div>
 
             {/* Drawing */}
-            <div className="flex justify-start">
+            <div className="flex justify-center sm:justify-start">
               <Link
                 href="/admin/works/drawing"
-                className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-green-300 inline-block"
+                className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-green-300 inline-block w-full max-w-sm"
               >
-                <div className="aspect-[3/4] relative max-w-md w-full h-full min-h-[300px]">
+                <div className="aspect-[3/4] relative w-full h-full min-h-[250px] sm:min-h-[300px]">
                   {cardImages.drawing ? (
                     <>
                       <Image

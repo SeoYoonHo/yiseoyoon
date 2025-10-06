@@ -11,6 +11,7 @@ interface AdminNavBarProps {
 export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
   const pathname = usePathname();
   const [isWorksDropdownOpen, setIsWorksDropdownOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
     { href: '/admin', label: 'Home' },
@@ -122,7 +123,101 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
               </button>
             )}
           </div>
+
+          {/* 모바일 햄버거 메뉴 버튼 */}
+          <button
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="md:hidden p-2 text-white hover:text-gray-200 transition-colors"
+            aria-label="메뉴 열기"
+          >
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         </div>
+
+        {/* 모바일 메뉴 */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden bg-gray-800 border-t border-gray-600">
+            <div className="px-4 py-4 space-y-2">
+              {navItems.map((item) => (
+                item.label === 'Work' ? (
+                  <div key={item.href} className="space-y-1">
+                    <Link
+                      href={item.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                        isActive(item.href) || pathname.startsWith('/admin/works/')
+                          ? 'bg-white/30 text-white'
+                          : 'text-white/80 hover:text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {item.label}
+                    </Link>
+                    <div className="ml-4 space-y-1">
+                      <Link
+                        href="/admin/works/painting"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          pathname === '/admin/works/painting'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Painting
+                      </Link>
+                      <Link
+                        href="/admin/works/drawing"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                          pathname === '/admin/works/drawing'
+                            ? 'bg-white/30 text-white'
+                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                        }`}
+                      >
+                        Drawing
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      isActive(item.href)
+                        ? 'bg-white/30 text-white'
+                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              ))}
+              <Link
+                href="/site/home"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+              >
+                ← Back to Site
+              </Link>
+              {onLogout && (
+                <button
+                  onClick={() => {
+                    if (onLogout) {
+                      onLogout();
+                    }
+                    setIsMobileMenuOpen(false);
+                    window.location.href = '/admin/login';
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   );

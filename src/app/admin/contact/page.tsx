@@ -86,7 +86,7 @@ export default function AdminContactPage() {
   return (
     <div className="w-full h-full px-6 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8 h-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Contact 관리</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-8">Admin - Contact 관리</h1>
 
         {/* Contact 업데이트 섹션 */}
         <div>

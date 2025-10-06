@@ -401,7 +401,7 @@ export default function AdminPaintingPage() {
   return (
     <div className="w-full px-6 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Painting 관리</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-8">Admin - Painting 관리</h1>
         
         {/* 작품 업로드 섹션 */}
         <div className="border-b border-gray-200 pb-8 mb-8">
@@ -747,14 +747,14 @@ export default function AdminPaintingPage() {
                   {editingArtwork?.id === artwork.id ? (
                     // 수정 모드
                     <div className="space-y-4">
-                      <div className="flex gap-4">
-                        <div className="w-32 h-32 flex-shrink-0 relative rounded-lg overflow-hidden bg-gray-100">
+                      <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="w-full sm:w-32 h-32 flex-shrink-0 relative rounded-lg overflow-hidden bg-gray-100 mx-auto sm:mx-0">
                           <Image
                             src={getS3ImageUrl(artwork.thumbnailSmall || artwork.thumbnailImage || artwork.originalImage)}
                             alt={artwork.title}
                             fill
                             className="object-cover"
-                            sizes="128px"
+                            sizes="(max-width: 640px) 100vw, 128px"
                           />
                         </div>
                         <div className="flex-1 space-y-3">
@@ -818,28 +818,28 @@ export default function AdminPaintingPage() {
                     </div>
                   ) : (
                     // 일반 모드
-                    <div className="flex gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
                       {/* 썸네일 */}
-                      <div className="w-32 h-32 flex-shrink-0 relative rounded-lg overflow-hidden bg-gray-100">
+                      <div className="w-full sm:w-32 h-32 flex-shrink-0 relative rounded-lg overflow-hidden bg-gray-100 mx-auto sm:mx-0">
                         <Image
                           src={getS3ImageUrl(artwork.thumbnailSmall || artwork.thumbnailImage || artwork.originalImage)}
                           alt={artwork.title}
                           fill
                           className="object-cover"
-                          sizes="128px"
+                          sizes="(max-width: 640px) 100vw, 128px"
                         />
                       </div>
 
                       {/* 작품 정보 */}
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      <div className="flex-1 text-center sm:text-left">
+                        <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                           {artwork.title}
                         </h3>
-                        <p className="text-sm text-gray-600 mb-2">
+                        <p className="text-xs sm:text-sm text-gray-600 mb-2">
                           제작 연도: {artwork.year}년
                         </p>
                         {artwork.description && (
-                          <p className="text-sm text-gray-700 line-clamp-2 mb-3">
+                          <p className="text-xs sm:text-sm text-gray-700 line-clamp-2 mb-3">
                             {artwork.description}
                           </p>
                         )}
@@ -849,17 +849,17 @@ export default function AdminPaintingPage() {
                       </div>
 
                       {/* 액션 버튼 */}
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-row sm:flex-col gap-2 justify-center sm:justify-start">
                         <button
                           onClick={() => handleStartEdit(artwork)}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-all"
+                          className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-all"
                         >
                           수정
                         </button>
                         <button
                           onClick={() => handleDeleteArtwork(artwork.id)}
                           disabled={deletingId === artwork.id}
-                          className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                          className="px-3 sm:px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                         >
                           {deletingId === artwork.id ? '삭제 중...' : '삭제'}
                         </button>

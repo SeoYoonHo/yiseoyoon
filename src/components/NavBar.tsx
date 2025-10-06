@@ -163,8 +163,8 @@ export default function NavBar() {
                       onClick={() => setIsMobileMenuOpen(false)}
                       className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                         isActive(item.href) || pathname.startsWith('/site/works/')
-                          ? 'bg-white/30 text-white'
-                          : 'text-white/80 hover:text-white hover:bg-white/20'
+                          ? 'bg-gray-200 text-gray-900'
+                          : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
                       {item.label}
@@ -175,8 +175,8 @@ export default function NavBar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                           pathname === '/site/works/painting'
-                            ? 'bg-white/30 text-white'
-                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                       >
                         Painting
@@ -186,8 +186,8 @@ export default function NavBar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                           pathname === '/site/works/drawing'
-                            ? 'bg-white/30 text-white'
-                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                       >
                         Drawing
@@ -201,8 +201,8 @@ export default function NavBar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                       isActive(item.href)
-                        ? 'bg-white/30 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                        ? 'bg-gray-200 text-gray-900'
+                        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     {item.label}
@@ -214,7 +214,7 @@ export default function NavBar() {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                className="flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 aria-label="Instagram"
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
@@ -226,7 +226,7 @@ export default function NavBar() {
                 <Link
                   href="/site/home"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="block px-3 py-2 rounded-md text-sm font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                  className="block px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 >
                   ← Back to Site
                 </Link>

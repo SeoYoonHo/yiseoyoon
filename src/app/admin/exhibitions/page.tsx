@@ -412,11 +412,11 @@ export default function AdminExhibitionsPage() {
   return (
     <div className="w-full px-6 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin - Exhibitions 관리</h1>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 gap-4">
+          <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Admin - Exhibitions 관리</h1>
           <button
             onClick={() => setShowCreateForm(!showCreateForm)}
-            className="bg-red-600 text-white px-6 py-2 rounded-md hover:bg-red-700 transition-all"
+            className="bg-red-600 text-white px-4 sm:px-6 py-2 rounded-md hover:bg-red-700 transition-all text-sm sm:text-base w-full sm:w-auto"
           >
             {showCreateForm ? '취소' : '+ 새 전시 추가'}
           </button>
@@ -613,24 +613,24 @@ export default function AdminExhibitionsPage() {
                 ) : (
                   // 일반 모드
                   <div className="mb-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-2xl font-bold text-gray-900">{exhibition.title}</h3>
-                      <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-2 gap-2">
+                      <h3 className="text-lg sm:text-2xl font-bold text-gray-900">{exhibition.title}</h3>
+                      <div className="flex gap-2 justify-center sm:justify-end">
                         <button
                           onClick={() => handleStartEdit(exhibition)}
-                          className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-all"
+                          className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-all"
                         >
                           수정
                         </button>
                         <button
                           onClick={() => handleDeleteExhibition(exhibition.id, exhibition.title)}
-                          className="px-4 py-2 bg-red-600 text-white text-sm rounded-md hover:bg-red-700 transition-all"
+                          className="px-3 sm:px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-md hover:bg-red-700 transition-all"
                         >
                           삭제
                         </button>
                       </div>
                     </div>
-                    <div className="text-sm text-gray-600 space-y-1">
+                    <div className="text-xs sm:text-sm text-gray-600 space-y-1">
                       <p>📅 {new Date(exhibition.startDate).toLocaleDateString('ko-KR')} - {new Date(exhibition.endDate).toLocaleDateString('ko-KR')}</p>
                       <p>📍 {exhibition.location}</p>
                       {exhibition.description && (
@@ -642,21 +642,21 @@ export default function AdminExhibitionsPage() {
 
                 {/* 사진 업로드 */}
                 <div className="mb-4 p-4 bg-gray-50 rounded-md">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">사진 추가 (여러 장 선택 가능)</h4>
+                  <h4 className="text-xs sm:text-sm font-semibold text-gray-700 mb-2">사진 추가 (여러 장 선택 가능)</h4>
                   <div className="space-y-3">
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <input
                         ref={selectedExhibitionId === exhibition.id ? fileInputRef : null}
                         type="file"
                         accept="image/*"
                         multiple
                         onChange={(e) => handleFileSelect(e, exhibition.id)}
-                        className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
+                        className="flex-1 text-xs sm:text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-xs sm:file:text-sm file:font-semibold file:bg-red-50 file:text-red-700 hover:file:bg-red-100"
                       />
                       {selectedFiles.length > 0 && selectedExhibitionId === exhibition.id && (
                         <button
                           onClick={handleRemoveFiles}
-                          className="px-3 py-2 bg-gray-500 text-white text-sm rounded-md hover:bg-gray-600 transition-all"
+                          className="px-3 py-2 bg-gray-500 text-white text-xs sm:text-sm rounded-md hover:bg-gray-600 transition-all"
                         >
                           취소
                         </button>
@@ -666,10 +666,10 @@ export default function AdminExhibitionsPage() {
                     {/* 선택된 파일 미리보기 */}
                     {selectedFiles.length > 0 && selectedExhibitionId === exhibition.id && (
                       <div className="space-y-2">
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs sm:text-sm text-gray-600">
                           선택된 파일: {selectedFiles.length}개
                         </p>
-                        <div className="grid grid-cols-4 gap-2 max-h-32 overflow-y-auto">
+                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-32 overflow-y-auto">
                           {previewUrls.map((url, index) => (
                             <div key={index} className="relative">
                               <Image
@@ -677,7 +677,7 @@ export default function AdminExhibitionsPage() {
                                 alt={`Preview ${index + 1}`}
                                 width={80}
                                 height={80}
-                                className="w-20 h-20 object-cover rounded border"
+                                className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded border"
                               />
                             </div>
                           ))}
@@ -685,29 +685,29 @@ export default function AdminExhibitionsPage() {
                       </div>
                     )}
                     
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-center sm:justify-start">
                       <button
                         onClick={() => handleMultiPhotoUpload(exhibition.id)}
                         disabled={selectedFiles.length === 0 || selectedExhibitionId !== exhibition.id || isUploading}
-                        className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
+                        className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                       >
                         {isUploading && selectedExhibitionId === exhibition.id ? '업로드 중...' : `${selectedFiles.length > 0 ? `${selectedFiles.length}개 ` : ''}업로드`}
                       </button>
                     </div>
                   </div>
                   {uploadStatus && selectedExhibitionId === exhibition.id && (
-                    <p className="text-sm mt-2 text-gray-600">{uploadStatus}</p>
+                    <p className="text-xs sm:text-sm mt-2 text-gray-600">{uploadStatus}</p>
                   )}
                 </div>
 
                 {/* 사진 목록 */}
                 <div>
-                  <div className="flex justify-between items-center mb-3">
-                    <h4 className="text-sm font-semibold text-gray-700">
+                  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 gap-2">
+                    <h4 className="text-xs sm:text-sm font-semibold text-gray-700">
                       전시 사진 ({exhibition.photos.length})
                     </h4>
                     {exhibition.photos.length > 1 && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 justify-center sm:justify-end">
                         {reorderingExhibition === exhibition.id ? (
                           <>
                             <button
@@ -744,12 +744,12 @@ export default function AdminExhibitionsPage() {
                   </div>
                   
                   {exhibition.photos.length === 0 ? (
-                    <p className="text-sm text-gray-500">아직 업로드된 사진이 없습니다.</p>
+                    <p className="text-xs sm:text-sm text-gray-500">아직 업로드된 사진이 없습니다.</p>
                   ) : (
                     <div className="relative">
-                      <div className={`grid gap-4 ${
+                      <div className={`grid gap-2 sm:gap-4 ${
                         expandedPhotos.has(exhibition.id) 
-                          ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4' 
+                          ? 'grid-cols-4' 
                           : 'grid-cols-4'
                       }`}>
                         {expandedPhotos.has(exhibition.id) 
@@ -765,7 +765,7 @@ export default function AdminExhibitionsPage() {
                                     alt={`${exhibition.title} photo ${index + 1}`}
                                     fill
                                     className="object-cover"
-                                    sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 33vw, 25vw"
                                   />
                                   
                                   {/* 순서 변경 모드에서 사진 선택 */}
@@ -807,16 +807,21 @@ export default function AdminExhibitionsPage() {
                                   </div>
                                 )}
                                 
-                                {/* 삭제 버튼 */}
-                                <button
-                                  onClick={() => handleDeletePhoto(exhibition.id, photoUrl)}
-                                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                                  aria-label="Delete photo"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
+                                {/* 삭제 버튼 - 순서 변경 모드가 아닐 때만 표시 */}
+                                {reorderingExhibition !== exhibition.id && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePhoto(exhibition.id, photoUrl);
+                                    }}
+                                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                                    aria-label="Delete photo"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                )}
                               </div>
                             ))
                           : exhibition.photos.slice(0, 4).map((photoUrl, index) => (
@@ -831,7 +836,7 @@ export default function AdminExhibitionsPage() {
                                     alt={`${exhibition.title} photo ${index + 1}`}
                                     fill
                                     className="object-cover"
-                                    sizes="(max-width: 640px) 25vw, 25vw"
+                                    sizes="(max-width: 640px) 25vw, (max-width: 768px) 33vw, 25vw"
                                   />
                                   
                                   {/* 순서 변경 모드에서 사진 선택 */}
@@ -873,16 +878,21 @@ export default function AdminExhibitionsPage() {
                                   </div>
                                 )}
                                 
-                                {/* 삭제 버튼 */}
-                                <button
-                                  onClick={() => handleDeletePhoto(exhibition.id, photoUrl)}
-                                  className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
-                                  aria-label="Delete photo"
-                                >
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
+                                {/* 삭제 버튼 - 순서 변경 모드가 아닐 때만 표시 */}
+                                {reorderingExhibition !== exhibition.id && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeletePhoto(exhibition.id, photoUrl);
+                                    }}
+                                    className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-700"
+                                    aria-label="Delete photo"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                  </button>
+                                )}
                               </div>
                             ))
                         }
@@ -893,7 +903,7 @@ export default function AdminExhibitionsPage() {
                         <div className="flex justify-center mt-4">
                           <button
                             onClick={() => togglePhotoExpansion(exhibition.id)}
-                            className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-all font-medium"
+                            className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-all font-medium"
                           >
                             {expandedPhotos.has(exhibition.id) ? '접기' : `더 보기 (+${exhibition.photos.length - 4}개)`}
                           </button>

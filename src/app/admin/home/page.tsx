@@ -4,9 +4,9 @@ import Link from 'next/link';
 
 export default function AdminHomePage() {
   return (
-    <div className="w-full h-full px-6 py-8">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full h-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Home</h1>
+    <div className="w-full px-6 py-8">
+      <div className="bg-white rounded-lg shadow-lg p-8 w-full">
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-8">Admin - Home</h1>
         
         <div className="space-y-8">
           {/* 관리 기능 안내 */}

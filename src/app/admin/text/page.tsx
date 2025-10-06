@@ -142,7 +142,7 @@ export default function AdminTextPage() {
   return (
     <div className="w-full h-full px-6 py-8">
       <div className="bg-white rounded-lg shadow-lg p-8 h-full">
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Admin - Text 관리</h1>
+        <h1 className="text-xl sm:text-3xl font-bold text-gray-900 mb-8">Admin - Text 관리</h1>
         
         {/* 텍스트 업로드 섹션 */}
         <div className="border-b border-gray-200 pb-8 mb-8">
