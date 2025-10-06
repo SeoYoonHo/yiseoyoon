@@ -33,11 +33,12 @@ export async function GET() {
 
       const artworks = JSON.parse(metadataContent);
 
-      // 상대 경로를 전체 URL로 변환
+      // 상대 경로를 전체 URL로 변환 (캐시 무효화를 위한 타임스탬프 추가)
+      const timestamp = Date.now();
       const artworksWithUrls = artworks.map((artwork: { originalImage: string; thumbnailImage: string; [key: string]: unknown }) => ({
         ...artwork,
-        originalImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.originalImage}`,
-        thumbnailImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailImage}`,
+        originalImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.originalImage}?t=${timestamp}`,
+        thumbnailImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailImage}?t=${timestamp}`,
       }));
 
       return NextResponse.json({

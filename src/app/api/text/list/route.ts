@@ -24,13 +24,14 @@ export async function GET(request: NextRequest) {
 
       const metadata = JSON.parse(metadataBody);
       
-      // 메타데이터를 배열로 변환하여 반환
+      // 메타데이터를 배열로 변환하여 반환 (캐시 무효화를 위한 타임스탬프 추가)
+      const timestamp = Date.now();
       const texts = Object.entries(metadata).map(([id, textData]) => {
         const data = textData as { title: string; pdfUrl: string; uploadedAt: string };
         return {
           id,
           title: data.title,
-          pdfUrl: data.pdfUrl,
+          pdfUrl: `${data.pdfUrl}?t=${timestamp}`,
           uploadedAt: data.uploadedAt,
         };
       });

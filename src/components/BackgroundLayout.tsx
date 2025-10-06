@@ -20,8 +20,7 @@ export default function BackgroundLayout({ children }: BackgroundLayoutProps) {
           backgroundImage: backgroundImageUrl ? `url(${backgroundImageUrl})` : undefined,
         }}
       >
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/30"></div>
+        {/* 원본 이미지 밝기 유지를 위해 오버레이 제거 */}
       </div>
 
       {/* Content - Fixed height, no scroll */}

@@ -19,6 +19,7 @@ export default function AdminNavBar({ onLogout }: Readonly<AdminNavBarProps>) {
     { href: '/admin/text', label: 'Text' },
     { href: '/admin/cv', label: 'CV' },
     { href: '/admin/contact', label: 'Contact' },
+    { href: '/admin/backgrounds', label: 'Backgrounds' },
   ];
 
   const isActive = (href: string) => {

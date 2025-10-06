@@ -13,9 +13,10 @@ export const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://yiseo
 
 // S3 경로 헬퍼 함수들
 export const getS3ImageUrl = (path: string): string => {
-  // 캐시 최적화를 위한 쿼리 파라미터 추가 (선택사항)
+  // 캐시 무효화를 위한 타임스탬프 추가
+  const timestamp = Date.now();
   const url = `${S3_BASE_URL}/${path}`;
-  return url;
+  return `${url}?t=${timestamp}`;
 };
 
 // 캐시 최적화된 이미지 URL 생성
@@ -24,7 +25,9 @@ export const getCachedS3ImageUrl = (path: string, version?: string): string => {
   if (version) {
     return `${baseUrl}?v=${version}`;
   }
-  return baseUrl;
+  // 버전이 없으면 타임스탬프 사용
+  const timestamp = Date.now();
+  return `${baseUrl}?t=${timestamp}`;
 };
 
 // Home/Background 폴더의 배경 이미지 URL 생성 (확장자 자동 감지)
