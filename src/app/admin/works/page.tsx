@@ -15,6 +15,7 @@ export default function AdminWorksPage() {
   const paintingFileInputRef = useRef<HTMLInputElement>(null);
   const drawingFileInputRef = useRef<HTMLInputElement>(null);
   const [cardImages, setCardImages] = useState<{painting: string | null, drawing: string | null}>({painting: null, drawing: null});
+  const [imageLoadStates, setImageLoadStates] = useState<{painting: boolean, drawing: boolean}>({painting: false, drawing: false});
 
   const allowedTypes = [
     'image/jpeg',
@@ -178,6 +179,8 @@ export default function AdminWorksPage() {
       const data = await response.json();
       if (data.success) {
         setCardImages(data.images);
+        // 이미지 로드 상태 초기화
+        setImageLoadStates({painting: false, drawing: false});
       }
     } catch (error) {
       console.error('Failed to fetch card images:', error);
@@ -361,16 +364,37 @@ export default function AdminWorksPage() {
                 href="/admin/works/painting"
                 className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-blue-300 inline-block"
               >
-                <div className="aspect-[3/4] relative max-w-md">
+                <div className="aspect-[3/4] relative max-w-md w-full h-full min-h-[300px]">
                   {cardImages.painting ? (
-                    <Image
-                      src={cardImages.painting}
-                      alt="Painting Card"
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
-                    />
+                    <>
+                      <Image
+                        src={cardImages.painting}
+                        alt="Painting Card"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
+                        onLoad={() => {
+                          setImageLoadStates(prev => ({...prev, painting: true}));
+                        }}
+                        onError={() => {
+                          console.error('Painting card image failed to load:', cardImages.painting);
+                          setImageLoadStates(prev => ({...prev, painting: false}));
+                        }}
+                      />
+                      {!imageLoadStates.painting && (
+                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-16 h-16 mx-auto mb-2 bg-blue-100 rounded-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm text-gray-600">이미지 로딩 중...</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center">
@@ -399,16 +423,37 @@ export default function AdminWorksPage() {
                 href="/admin/works/drawing"
                 className="group relative bg-gray-50 rounded-lg overflow-hidden hover:bg-gray-100 transition-all duration-300 border-2 border-gray-200 hover:border-green-300 inline-block"
               >
-                <div className="aspect-[3/4] relative max-w-md">
+                <div className="aspect-[3/4] relative max-w-md w-full h-full min-h-[300px]">
                   {cardImages.drawing ? (
-                    <Image
-                      src={cardImages.drawing}
-                      alt="Drawing Card"
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      loading="lazy"
-                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
-                    />
+                    <>
+                      <Image
+                        src={cardImages.drawing}
+                        alt="Drawing Card"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                        loading="lazy"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
+                        onLoad={() => {
+                          setImageLoadStates(prev => ({...prev, drawing: true}));
+                        }}
+                        onError={() => {
+                          console.error('Drawing card image failed to load:', cardImages.drawing);
+                          setImageLoadStates(prev => ({...prev, drawing: false}));
+                        }}
+                      />
+                      {!imageLoadStates.drawing && (
+                        <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="w-16 h-16 mx-auto mb-2 bg-green-100 rounded-full flex items-center justify-center">
+                              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm text-gray-600">이미지 로딩 중...</p>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <div className="text-center">
