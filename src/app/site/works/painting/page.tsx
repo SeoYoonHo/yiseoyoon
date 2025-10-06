@@ -176,7 +176,7 @@ export default function PaintingPage() {
                      <div className="hidden lg:block lg:w-32">
                        <div className="sticky top-24">
                          {/* 타임라인 연도 */}
-                         <div className="flex flex-col items-center bg-black/20 backdrop-blur-md rounded-lg p-6 gap-8">
+                         <div className="flex flex-col items-center bg-white/95 backdrop-blur-md rounded-lg p-6 gap-8">
                            {Array.from(new Set(works.map(work => work.year)))
                              .sort((a, b) => parseInt(b) - parseInt(a))
                              .map((year) => (
@@ -185,8 +185,8 @@ export default function PaintingPage() {
                                  onClick={() => handleYearClick(year)}
                                  className={`text-lg sm:text-xl font-bold transition-all duration-300 hover:scale-105 px-3 sm:px-4 py-2 rounded-lg ${
                                    activeYear === year 
-                                     ? 'text-black bg-white/90 shadow-lg' 
-                                     : 'text-white/80 hover:text-white hover:bg-white/20'
+                                     ? 'text-white bg-gray-800 shadow-lg' 
+                                     : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                                  }`}
                                >
                                  {year}
@@ -207,8 +207,7 @@ export default function PaintingPage() {
                           <div key={year} id={`year-${year}`} className="mb-12">
                             {/* 연도 헤더 */}
                             <div className="mb-6">
-                              <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">{year}</h2>
-                              <div className="w-16 h-0.5 bg-white/40"></div>
+                              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{year}</h2>
                             </div>
                             
                             {/* 작품 그리드 */}
@@ -248,7 +247,7 @@ export default function PaintingPage() {
                                         sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
                                       />
                                     </div>
-                                    <h3 className="text-[10px] sm:text-xs md:text-sm font-semibold text-white mb-2">{work.title}</h3>
+                                    <h3 className="text-[10px] sm:text-xs md:text-sm font-normal text-gray-900 mb-2">{work.title}</h3>
                                   </div>
                                 </div>
                               ))}

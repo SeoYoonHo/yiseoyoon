@@ -156,8 +156,8 @@ export default function ExhibitionsPage() {
 
                             <div className="p-4 sm:p-6">
                               {/* 전시 정보 */}
-                              <h3 className="text-lg sm:text-xl lg:text-2xl font-bold text-white mb-2">{exhibition.title}</h3>
-                              <p className="text-xs sm:text-sm text-white/70 mb-2">
+                              <h3 className="text-base sm:text-lg lg:text-xl font-normal text-gray-900 mb-2">{exhibition.title}</h3>
+                              <p className="text-xs sm:text-sm text-gray-700 mb-2">
                                 {new Date(exhibition.startDate).toLocaleDateString('ko-KR', { 
                                   year: 'numeric', 
                                   month: '2-digit', 
@@ -169,7 +169,7 @@ export default function ExhibitionsPage() {
                                 }).replace(/\. /g, '.')} ({exhibition.location})
                               </p>
                               {exhibition.description && (
-                                <p className="text-xs sm:text-sm text-white/60 mb-4 leading-relaxed line-clamp-2 sm:line-clamp-3">{exhibition.description}</p>
+                                <p className="text-xs sm:text-sm text-gray-600 mb-4 leading-relaxed line-clamp-2 sm:line-clamp-3">{exhibition.description}</p>
                               )}
 
                             </div>

@@ -21,6 +21,8 @@ export default function AdminBackgroundsPage() {
   const [uploadStatus, setUploadStatus] = useState<string>('');
   const [currentBackgroundUrl, setCurrentBackgroundUrl] = useState<string>('');
   const [isLoadingBackground, setIsLoadingBackground] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 현재 선택된 탭의 배경 이미지 로드
@@ -141,6 +143,39 @@ export default function AdminBackgroundsPage() {
     }
   };
 
+  const handleDeleteBackground = async () => {
+    if (!confirm(`정말로 ${currentTab?.name} 배경화면을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`)) {
+      return;
+    }
+
+    setIsDeleting(true);
+    setDeleteStatus('삭제 중...');
+
+    try {
+      const currentTabData = backgroundTabs.find(tab => tab.id === selectedTab);
+      const folder = currentTabData?.folder || 'Home';
+      
+      const response = await fetch(`/api/background/delete?folder=${folder}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setDeleteStatus(`${currentTab?.name} 배경화면이 성공적으로 삭제되었습니다! (${result.deletedCount}개 파일)`);
+        setCurrentBackgroundUrl('');
+        setUploadStatus('');
+      } else {
+        setDeleteStatus(`삭제 실패: ${result.error}`);
+      }
+    } catch (error) {
+      setDeleteStatus('삭제 중 오류가 발생했습니다.');
+      console.error('Delete error:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const currentTab = backgroundTabs.find(tab => tab.id === selectedTab);
 
   return (
@@ -158,6 +193,7 @@ export default function AdminBackgroundsPage() {
                   setSelectedTab(tab.id);
                   setSelectedFile(null);
                   setUploadStatus('');
+                  setDeleteStatus('');
                   if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                   }
@@ -200,7 +236,18 @@ export default function AdminBackgroundsPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* 현재 배경 이미지 미리보기 */}
             <div>
-              <h4 className="text-md font-medium text-gray-700 mb-4">현재 배경 이미지</h4>
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-md font-medium text-gray-700">현재 배경 이미지</h4>
+                {currentBackgroundUrl && (
+                  <button
+                    onClick={handleDeleteBackground}
+                    disabled={isDeleting}
+                    className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all text-sm"
+                  >
+                    {isDeleting ? '삭제 중...' : '삭제'}
+                  </button>
+                )}
+              </div>
               <div className="bg-gray-50 rounded-lg p-4">
                 {isLoadingBackground ? (
                   <div className="flex items-center justify-center h-48 bg-gray-100 rounded-lg">
@@ -308,6 +355,13 @@ export default function AdminBackgroundsPage() {
                 {uploadStatus && (
                   <div className={`p-3 rounded-md ${getStatusClassName(uploadStatus)}`}>
                     {uploadStatus}
+                  </div>
+                )}
+                
+                {/* 삭제 상태 메시지 */}
+                {deleteStatus && (
+                  <div className={`p-3 rounded-md ${getStatusClassName(deleteStatus)}`}>
+                    {deleteStatus}
                   </div>
                 )}
               </div>

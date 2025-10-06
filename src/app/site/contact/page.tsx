@@ -61,7 +61,7 @@ export default function ContactPage() {
           <ContentTransition>
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center text-white/80">
+                <div className="text-center text-gray-700">
                   <p className="text-xl">{error}</p>
                 </div>
               </div>
@@ -90,12 +90,12 @@ export default function ContactPage() {
             }`}>
               {/* Contact Header */}
               <div className="mb-12">
-                <h1 className="text-white font-bold mb-8">Contact</h1>
+                <h1 className="text-gray-900 font-bold mb-8">Contact</h1>
               </div>
 
               {/* Contact Content */}
               <div className="mb-12">
-                <div className="text-white/90 leading-relaxed whitespace-pre-line max-w-4xl">
+                <div className="text-gray-800 leading-relaxed whitespace-pre-line max-w-4xl">
                   {contactData?.text || '연락처 정보가 아직 입력되지 않았습니다.'}
                 </div>
               </div>

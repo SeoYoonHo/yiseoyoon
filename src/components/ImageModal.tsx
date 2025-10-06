@@ -77,7 +77,7 @@ export default function ImageModal({
   const modalContent = (
     // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions
     <div
-      className={`fixed inset-0 z-[60] bg-black/95 backdrop-blur-sm transition-opacity duration-300 ${
+      className={`fixed inset-0 z-[60] bg-white/95 backdrop-blur-sm transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0'
       }`}
       onClick={onClose}
@@ -92,7 +92,7 @@ export default function ImageModal({
         {/* 닫기 버튼 */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center bg-white/10 hover:bg-white/20 text-white rounded-full transition-all backdrop-blur-sm cursor-pointer"
+          className="absolute top-6 right-6 z-20 w-12 h-12 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
           aria-label="Close modal"
         >
           <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -102,7 +102,7 @@ export default function ImageModal({
 
         {/* 이미지와 정보를 함께 표시 */}
         <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-24 py-8 sm:py-12 md:py-16">
-          <div className="relative max-w-7xl w-full h-full flex items-center justify-center">
+          <div className="relative max-w-7xl flex items-center justify-center">
             <Image
               src={images[currentIndex]}
               alt={`${title} - ${currentIndex + 1}/${images.length}`}
@@ -115,19 +115,19 @@ export default function ImageModal({
           </div>
 
           {/* 정보 영역 - 이미지 바로 아래 */}
-          <div className="w-full max-w-4xl mt-4 sm:mt-6 px-4">
-            <h2 className="text-lg sm:text-xl font-semibold text-white mb-2 text-center">{title}</h2>
+          <div className="w-full max-w-4xl mt-8 sm:mt-12 px-4">
+            <h2 className="text-base sm:text-lg font-normal text-gray-900 mb-2 text-center">{title}</h2>
 
-            {subtitle && <p className="text-xs sm:text-sm text-white/70 mb-3 text-center">{subtitle}</p>}
+            {subtitle && <p className="text-xs sm:text-sm text-gray-600 mb-3 text-center">{subtitle}</p>}
 
             {description && (
-              <p className="text-xs sm:text-sm text-white/80 leading-relaxed whitespace-pre-wrap text-center">{description}</p>
+              <p className="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-wrap text-center">{description}</p>
             )}
 
             {/* 이미지 번호 표시 */}
             {images.length > 1 && (
               <div className="mt-3 sm:mt-4 text-center">
-                <span className="inline-block bg-white/10 text-white px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm">
+                <span className="inline-block bg-gray-200 text-gray-700 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm">
                   {currentIndex + 1} / {images.length}
                 </span>
               </div>
@@ -138,7 +138,7 @@ export default function ImageModal({
           {showNavigation && (
             <button
               onClick={onPrev}
-              className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
+              className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition-all backdrop-blur-sm shadow-xl"
               aria-label="Previous image"
             >
               <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -151,7 +151,7 @@ export default function ImageModal({
           {showNavigation && (
             <button
               onClick={onNext}
-              className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-black/60 hover:bg-black/80 text-white rounded-full transition-all backdrop-blur-sm shadow-xl"
+              className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-full transition-all backdrop-blur-sm shadow-xl"
               aria-label="Next image"
             >
               <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>

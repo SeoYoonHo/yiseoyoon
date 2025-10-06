@@ -44,14 +44,14 @@ export default function NavBar() {
   };
 
   return (
-    <nav className="fixed top-0 w-full bg-black/20 backdrop-blur-md z-50 border-b border-white/20">
+    <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-md z-50 border-b border-gray-200">
       <div className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16">
         <div className="flex justify-between items-center h-16 sm:h-20">
           <Link 
             href="/site/home"
-            className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-gray-200 transition-colors drop-shadow-md"
+            className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 hover:text-gray-700 transition-colors"
           >
-            yiseoyoon
+            Seoyoon Yi
           </Link>
           <div className="hidden sm:flex space-x-2 md:space-x-4 lg:space-x-6 xl:space-x-8">
             {navItems.map((item) => (
@@ -66,8 +66,8 @@ export default function NavBar() {
                     href={item.href}
                     className={`px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium transition-colors ${
                       isActive(item.href) || pathname.startsWith('/site/works/')
-                        ? 'bg-white/30 text-white'
-                        : 'text-white/80 hover:text-white hover:bg-white/20'
+                        ? 'bg-gray-200 text-gray-900'
+                        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
                     {item.label}
@@ -75,14 +75,14 @@ export default function NavBar() {
                   
                   {/* Work 드롭다운 메뉴 */}
                   {isWorksDropdownOpen && (
-                    <div className="absolute top-full left-0 bg-black/90 backdrop-blur-md rounded-md shadow-lg z-50 min-w-[120px]">
+                    <div className="absolute top-full left-0 bg-white/95 backdrop-blur-md rounded-md shadow-lg z-50 min-w-[120px] border border-gray-200">
                       <Link
                         href="/site/works/painting"
                         onClick={() => setIsWorksDropdownOpen(false)}
                         className={`block px-4 py-2 text-sm font-medium transition-colors ${
                           pathname === '/site/works/painting'
-                            ? 'bg-white/30 text-white'
-                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                       >
                         Painting
@@ -92,8 +92,8 @@ export default function NavBar() {
                         onClick={() => setIsWorksDropdownOpen(false)}
                         className={`block px-4 py-2 text-sm font-medium transition-colors ${
                           pathname === '/site/works/drawing'
-                            ? 'bg-white/30 text-white'
-                            : 'text-white/80 hover:text-white hover:bg-white/20'
+                            ? 'bg-gray-200 text-gray-900'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                         }`}
                       >
                         Drawing
@@ -107,8 +107,8 @@ export default function NavBar() {
                   href={item.href}
                   className={`px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium transition-colors ${
                     isActive(item.href)
-                      ? 'bg-white/30 text-white'
-                      : 'text-white/80 hover:text-white hover:bg-white/20'
+                      ? 'bg-gray-200 text-gray-900'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
                   {item.label}
@@ -119,7 +119,7 @@ export default function NavBar() {
                 href={instagramUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors flex items-center gap-1 md:gap-2"
+                className="px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-1 md:gap-2"
                 aria-label="Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -132,7 +132,7 @@ export default function NavBar() {
               {pathname.startsWith('/admin') && (
                 <Link
                   href="/site/home"
-                  className="px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+                  className="px-2 md:px-3 lg:px-4 py-2 md:py-3 rounded-md text-sm md:text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 transition-colors"
                 >
                   ← Back to Site
                 </Link>
@@ -142,7 +142,7 @@ export default function NavBar() {
           {/* 모바일 햄버거 메뉴 버튼 */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="sm:hidden p-2 text-white hover:text-gray-200 transition-colors"
+            className="sm:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
             aria-label="메뉴 열기"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -153,7 +153,7 @@ export default function NavBar() {
 
         {/* 모바일 메뉴 */}
         {isMobileMenuOpen && (
-          <div className="sm:hidden bg-black/40 backdrop-blur-md border-t border-white/20">
+          <div className="sm:hidden bg-white/95 backdrop-blur-md border-t border-gray-200">
             <div className="px-4 py-4 space-y-2">
               {navItems.map((item) => (
                 item.label === 'Work' ? (

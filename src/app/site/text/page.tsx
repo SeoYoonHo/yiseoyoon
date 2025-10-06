@@ -76,7 +76,7 @@ export default function TextPage() {
 
             {!isLoading && error && (
               <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center text-white/80">
+                <div className="text-center text-gray-700">
                   <p className="text-xl">{error}</p>
                 </div>
               </div>
@@ -84,7 +84,7 @@ export default function TextPage() {
 
             {!isLoading && !error && texts.length === 0 && (
               <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center text-white/80">
+                <div className="text-center text-gray-700">
                   <p className="text-xl">아직 업로드된 텍스트가 없습니다.</p>
                 </div>
               </div>
@@ -96,12 +96,12 @@ export default function TextPage() {
                   <div
                     key={text.id}
                     onClick={() => handleTextClick(text)}
-                    className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all border border-white/10"
+                    className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all border border-gray-300"
                   >
-                    <h3 className="text-xl font-semibold text-white hover:text-white/80 transition-colors">
+                    <h3 className="text-lg font-normal text-gray-900 hover:text-gray-700 transition-colors">
                       {text.title}
                     </h3>
-                    <div className="mt-2 text-sm text-white/60">
+                    <div className="mt-2 text-sm text-gray-600">
                       업로드: {new Date(text.uploadedAt).toLocaleDateString('ko-KR')}
                     </div>
                   </div>
