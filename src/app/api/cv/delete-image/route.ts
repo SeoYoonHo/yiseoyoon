@@ -12,7 +12,22 @@ export async function DELETE(request: NextRequest) {
     }
 
     // S3 URL에서 키 추출
-    const imageKey = imageUrl.split('/').slice(-2).join('/'); // 'CV/images/filename.jpg'
+    let imageKey: string;
+    if (imageUrl.startsWith('http')) {
+      // 완전한 URL인 경우 S3 키 추출
+      const urlParts = imageUrl.split('/');
+      const bucketIndex = urlParts.findIndex(part => part.includes('s3'));
+      if (bucketIndex !== -1 && bucketIndex + 1 < urlParts.length) {
+        imageKey = urlParts.slice(bucketIndex + 1).join('/');
+        // 쿼리 파라미터 제거
+        imageKey = imageKey.split('?')[0];
+      } else {
+        return NextResponse.json({ error: 'Invalid S3 URL format' }, { status: 400 });
+      }
+    } else {
+      // 이미 S3 키인 경우
+      imageKey = imageUrl;
+    }
 
     const metadataKey = 'CV/metadata.json';
 
@@ -47,26 +62,52 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch metadata' }, { status: 500 });
     }
 
-    // 2. 이미지 파일 삭제
+    // 2. 썸네일과 원본 이미지 파일 삭제
     try {
-      const deleteImageCommand = new DeleteObjectCommand({
+      // 썸네일 삭제
+      const deleteThumbnailCommand = new DeleteObjectCommand({
         Bucket: S3_BUCKET,
         Key: imageKey,
       });
-      await s3Client.send(deleteImageCommand);
-      console.log('Image file deleted:', imageKey);
+      await s3Client.send(deleteThumbnailCommand);
+      console.log('Thumbnail file deleted:', imageKey);
+
+      // 원본 삭제
+      const originalKey = imageKey.replace('/Thumbnail/', '/Original/');
+      const deleteOriginalCommand = new DeleteObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: originalKey,
+      });
+      await s3Client.send(deleteOriginalCommand);
+      console.log('Original file deleted:', originalKey);
     } catch (error) {
-      console.error('Failed to delete image file:', error);
+      console.error('Failed to delete image files:', error);
       // 이미지 파일 삭제 실패해도 계속 진행
     }
 
-    // 3. 메타데이터에서 이미지 제거
+    // 3. 메타데이터에서 이미지 제거 (파일명으로 비교)
+    console.log('Original images:', metadata.images);
+    console.log('Image URL to remove:', imageUrl);
+    
     if (metadata.images) {
-      metadata.images = metadata.images.filter((img: string) => img !== imageKey);
+      const originalLength = metadata.images.length;
+      // 파일명 추출
+      const fileName = imageKey.split('/').pop();
+      console.log('File name to remove:', fileName);
+      
+      metadata.images = metadata.images.filter((img: string) => {
+        const imgFileName = img.split('/').pop()?.split('?')[0];
+        return imgFileName !== fileName;
+      });
       metadata.updatedAt = new Date().toISOString();
+      
+      console.log('Filtered images:', metadata.images);
+      console.log('Images removed:', originalLength - metadata.images.length);
     }
 
     // 4. 업데이트된 메타데이터를 S3에 업로드
+    console.log('Updated metadata:', JSON.stringify(metadata, null, 2));
+    
     const uploadMetadataCommand = new PutObjectCommand({
       Bucket: S3_BUCKET,
       Key: metadataKey,
@@ -75,7 +116,13 @@ export async function DELETE(request: NextRequest) {
       CacheControl: 'public, max-age=0, must-revalidate',
     });
 
-    await s3Client.send(uploadMetadataCommand);
+    try {
+      await s3Client.send(uploadMetadataCommand);
+      console.log('Metadata updated successfully');
+    } catch (error) {
+      console.error('Failed to update metadata:', error);
+      return NextResponse.json({ error: 'Failed to update metadata' }, { status: 500 });
+    }
 
     console.log('CV image deleted successfully:', imageKey);
 

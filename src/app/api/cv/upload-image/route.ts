@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
 import { s3Client, S3_BUCKET, getS3ImageUrl } from '@/lib/s3';
+import sharp from 'sharp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,23 +20,48 @@ export async function POST(request: NextRequest) {
 
     // 파일명을 타임스탬프 기반으로 생성
     const timestamp = Date.now();
-    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-    const imageKey = `CV/images/poster_${timestamp}.${fileExtension}`;
+    const fileExtension = 'jpg'; // 항상 jpg로 통일
+    const originalKey = `CV/Original/poster_${timestamp}.${fileExtension}`;
+    const thumbnailKey = `CV/Thumbnail/poster_${timestamp}.${fileExtension}`;
 
     // 이미지 파일을 ArrayBuffer로 변환
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const originalBuffer = Buffer.from(arrayBuffer);
 
-    // 이미지 파일을 S3에 업로드
-    const uploadCommand = new PutObjectCommand({
+    // 썸네일 생성 (400x600px, 3:4 비율, 품질 90%)
+    const thumbnailBuffer = await sharp(originalBuffer)
+      .resize(400, 600, { 
+        fit: 'cover',
+        position: 'center'
+      })
+      .jpeg({ 
+        quality: 90,
+        progressive: true
+      })
+      .toBuffer();
+
+    // 원본 이미지 업로드
+    const originalUploadCommand = new PutObjectCommand({
       Bucket: S3_BUCKET,
-      Key: imageKey,
-      Body: buffer,
+      Key: originalKey,
+      Body: originalBuffer,
       ContentType: file.type,
-      CacheControl: 'public, max-age=31536000',
+      CacheControl: 'public, max-age=31536000, immutable',
     });
 
-    await s3Client.send(uploadCommand);
+    // 썸네일 이미지 업로드
+    const thumbnailUploadCommand = new PutObjectCommand({
+      Bucket: S3_BUCKET,
+      Key: thumbnailKey,
+      Body: thumbnailBuffer,
+      ContentType: 'image/jpeg',
+      CacheControl: 'public, max-age=31536000, immutable',
+    });
+
+    await Promise.all([
+      s3Client.send(originalUploadCommand),
+      s3Client.send(thumbnailUploadCommand)
+    ]);
 
     // CV/metadata.json 파일 가져오기
     const metadataKey = 'CV/metadata.json';
@@ -68,11 +94,11 @@ export async function POST(request: NextRequest) {
       console.log('CV metadata.json not found, creating new one');
     }
 
-    // 새 이미지를 메타데이터에 추가
+    // 새 썸네일 이미지를 메타데이터에 추가
     if (!metadata.images) {
       metadata.images = [];
     }
-    metadata.images.push(imageKey);
+    metadata.images.push(thumbnailKey);
     metadata.updatedAt = new Date().toISOString();
 
     // 업데이트된 메타데이터를 S3에 업로드
@@ -86,13 +112,13 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(uploadMetadataCommand);
 
-    console.log('CV image uploaded successfully:', imageKey);
+    console.log('CV image uploaded successfully:', thumbnailKey);
 
     return NextResponse.json({
       success: true,
       message: 'Image uploaded successfully',
-      imageKey,
-      imageUrl: getS3ImageUrl(imageKey),
+      imageKey: thumbnailKey,
+      imageUrl: getS3ImageUrl(thumbnailKey),
     });
 
   } catch (error) {
