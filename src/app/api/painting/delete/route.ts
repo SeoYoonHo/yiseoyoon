@@ -58,15 +58,25 @@ export async function DELETE(request: NextRequest) {
       console.error('원본 이미지 삭제 실패:', error);
     }
 
-    // S3에서 썸네일 이미지 삭제
-    try {
-      const deleteThumbnailCommand = new DeleteObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: artworkToDelete.thumbnailImage,
-      });
-      await s3Client.send(deleteThumbnailCommand);
-    } catch (error) {
-      console.error('썸네일 이미지 삭제 실패:', error);
+    // S3에서 모든 썸네일 이미지 삭제 (Small, Medium, Large)
+    const thumbnailKeys = [
+      artworkToDelete.thumbnailImage,
+      artworkToDelete.thumbnailSmall,
+      artworkToDelete.thumbnailMedium,
+      artworkToDelete.thumbnailLarge
+    ].filter(key => key); // undefined 제거
+
+    for (const thumbnailKey of thumbnailKeys) {
+      try {
+        const deleteThumbnailCommand = new DeleteObjectCommand({
+          Bucket: BUCKET_NAME,
+          Key: thumbnailKey,
+        });
+        await s3Client.send(deleteThumbnailCommand);
+        console.log(`썸네일 삭제 완료: ${thumbnailKey}`);
+      } catch (error) {
+        console.error(`썸네일 이미지 삭제 실패 (${thumbnailKey}):`, error);
+      }
     }
 
     // 메타데이터에서 작품 제거
