@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { S3Client, PutObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3';
-import sharp from 'sharp';
 
 const s3Client = new S3Client({
   region: process.env.AWS_REGION!,
@@ -18,11 +17,28 @@ function sanitizeMetadataValue(value: string): string {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('Painting upload API called');
+    console.log('Environment check:', {
+      AWS_REGION: process.env.AWS_REGION ? 'Set' : 'Not Set',
+      AWS_ACCESS_KEY_ID: process.env.AWS_ACCESS_KEY_ID ? 'Set' : 'Not Set',
+      AWS_SECRET_ACCESS_KEY: process.env.AWS_SECRET_ACCESS_KEY ? 'Set' : 'Not Set',
+      AWS_S3_BUCKET_NAME: process.env.AWS_S3_BUCKET_NAME ? 'Set' : 'Not Set',
+    });
+
     const formData = await request.formData();
     const file = formData.get('file') as File;
     const title = formData.get('title') as string;
     const year = formData.get('year') as string;
     const description = formData.get('description') as string;
+
+    console.log('Form data received:', { 
+      hasFile: !!file, 
+      fileName: file?.name, 
+      fileSize: file?.size,
+      title, 
+      year, 
+      description 
+    });
 
     if (!file) {
       return NextResponse.json({ success: false, error: '파일이 제공되지 않았습니다.' }, { status: 400 });
@@ -40,9 +56,6 @@ export async function POST(request: NextRequest) {
     const timestamp = Date.now();
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const originalKey = `Works/Painting/Original/${timestamp}.${fileExtension}`;
-    const thumbnailSmallKey = `Works/Painting/Thumbnail/Small/${timestamp}.jpg`;
-    const thumbnailMediumKey = `Works/Painting/Thumbnail/Medium/${timestamp}.jpg`;
-    const thumbnailLargeKey = `Works/Painting/Thumbnail/Large/${timestamp}.jpg`;
 
     // 원본 이미지 업로드
     const originalUploadCommand = new PutObjectCommand({
@@ -61,41 +74,6 @@ export async function POST(request: NextRequest) {
 
     await s3Client.send(originalUploadCommand);
 
-    // 반응형 썸네일 생성 및 업로드
-    const thumbnailSizes = [
-      { key: thumbnailSmallKey, size: 300, name: 'Small' },
-      { key: thumbnailMediumKey, size: 500, name: 'Medium' },
-      { key: thumbnailLargeKey, size: 800, name: 'Large' }
-    ];
-
-    for (const { key, size, name } of thumbnailSizes) {
-      const thumbnailBuffer = await sharp(buffer)
-        .resize(size, size, { 
-          fit: 'inside',
-          withoutEnlargement: true
-        })
-        .jpeg({ quality: 90 })
-        .toBuffer();
-
-      const thumbnailUploadCommand = new PutObjectCommand({
-        Bucket: BUCKET_NAME,
-        Key: key,
-        Body: thumbnailBuffer,
-        ContentType: 'image/jpeg',
-        Metadata: {
-          title: sanitizeMetadataValue(title || ''),
-          year: sanitizeMetadataValue(year || ''),
-          description: sanitizeMetadataValue(description || ''),
-          category: sanitizeMetadataValue('painting'),
-          uploadedAt: sanitizeMetadataValue(new Date().toISOString()),
-          isThumbnail: 'true',
-          thumbnailSize: sanitizeMetadataValue(name),
-        },
-      });
-
-      await s3Client.send(thumbnailUploadCommand);
-    }
-
     // 메타데이터 파일 업데이트
     const metadata = {
       id: timestamp.toString(),
@@ -103,9 +81,7 @@ export async function POST(request: NextRequest) {
       year: year || '',
       description: description || '',
       originalImage: originalKey,
-      thumbnailSmall: thumbnailSmallKey,
-      thumbnailMedium: thumbnailMediumKey,
-      thumbnailLarge: thumbnailLargeKey,
+      thumbnailImage: originalKey, // 원본을 썸네일로도 사용
       category: 'painting',
       createdAt: new Date().toISOString(),
     };
@@ -150,8 +126,18 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Painting 업로드 오류:', error);
+    console.error('Error details:', {
+      name: error instanceof Error ? error.name : 'Unknown',
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    
     return NextResponse.json(
-      { success: false, error: 'Painting 업로드 중 오류가 발생했습니다.' },
+      { 
+        success: false, 
+        error: 'Painting 업로드 중 오류가 발생했습니다.',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
       { status: 500 }
     );
   }

@@ -35,10 +35,36 @@ export async function GET() {
 
       // 상대 경로를 전체 URL로 변환 (캐시 무효화를 위한 타임스탬프 추가)
       const timestamp = Date.now();
-      const artworksWithUrls = artworks.map((artwork: { originalImage: string; thumbnailImage: string; [key: string]: unknown }) => ({
+      const artworksWithUrls = artworks.map((artwork: { 
+        originalImage: string; 
+        thumbnailImage: string; 
+        thumbnailSmall?: string;
+        thumbnailMedium?: string;
+        thumbnailLarge?: string;
+        [key: string]: unknown 
+      }) => ({
         ...artwork,
-        originalImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.originalImage}?t=${timestamp}`,
-        thumbnailImage: `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailImage}?t=${timestamp}`,
+        originalImage: artwork.originalImage.startsWith('http') 
+          ? artwork.originalImage 
+          : `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.originalImage}?t=${timestamp}`,
+        thumbnailImage: artwork.thumbnailImage.startsWith('http') 
+          ? artwork.thumbnailImage 
+          : `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailImage}?t=${timestamp}`,
+        thumbnailSmall: artwork.thumbnailSmall?.startsWith('http') 
+          ? artwork.thumbnailSmall 
+          : artwork.thumbnailSmall 
+            ? `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailSmall}?t=${timestamp}`
+            : artwork.thumbnailImage,
+        thumbnailMedium: artwork.thumbnailMedium?.startsWith('http') 
+          ? artwork.thumbnailMedium 
+          : artwork.thumbnailMedium 
+            ? `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailMedium}?t=${timestamp}`
+            : artwork.thumbnailImage,
+        thumbnailLarge: artwork.thumbnailLarge?.startsWith('http') 
+          ? artwork.thumbnailLarge 
+          : artwork.thumbnailLarge 
+            ? `https://${BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${artwork.thumbnailLarge}?t=${timestamp}`
+            : artwork.thumbnailImage,
       }));
 
       return NextResponse.json({

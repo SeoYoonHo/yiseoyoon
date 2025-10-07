@@ -13,6 +13,24 @@ export const S3_BASE_URL = process.env.NEXT_PUBLIC_S3_BASE_URL || 'https://yiseo
 
 // S3 경로 헬퍼 함수들
 export const getS3ImageUrl = (path: string): string => {
+  // 빈 문자열이나 undefined인 경우 처리
+  if (!path || typeof path !== 'string') {
+    console.warn('Invalid path provided to getS3ImageUrl:', path);
+    return '/placeholder.jpg';
+  }
+  
+  // 이미 전체 URL인 경우 그대로 반환
+  if (path.startsWith('http')) {
+    return path;
+  }
+  
+  // 상대 경로인 경우 절대 URL로 변환
+  if (path.startsWith('/')) {
+    // 이미 /로 시작하는 경우 S3_BASE_URL과 결합
+    const timestamp = Date.now();
+    return `${S3_BASE_URL}${path}?t=${timestamp}`;
+  }
+  
   // 캐시 무효화를 위한 타임스탬프 추가
   const timestamp = Date.now();
   const url = `${S3_BASE_URL}/${path}`;
@@ -21,6 +39,11 @@ export const getS3ImageUrl = (path: string): string => {
 
 // 캐시 최적화된 이미지 URL 생성
 export const getCachedS3ImageUrl = (path: string, version?: string): string => {
+  // 이미 전체 URL인 경우 그대로 반환
+  if (path.startsWith('http')) {
+    return path;
+  }
+  
   const baseUrl = `${S3_BASE_URL}/${path}`;
   if (version) {
     return `${baseUrl}?v=${version}`;

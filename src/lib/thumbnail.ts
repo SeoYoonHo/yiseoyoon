@@ -12,27 +12,30 @@ export function getResponsiveThumbnail(
   // 기본값으로 fallback 또는 small 사용
   const defaultThumbnail = fallback || thumbnailSmall;
   
+  // 빈 문자열이나 undefined인 경우 처리
+  if (!defaultThumbnail) {
+    console.warn('No thumbnail available');
+    return '/placeholder.jpg'; // 플레이스홀더 이미지
+  }
+  
   // 클라이언트 사이드에서는 JavaScript로 처리
   if (typeof window !== 'undefined') {
     const width = window.innerWidth;
     
     if (width >= 1024) {
       // 데스크톱 (1024px 이상) - Large
-      const selectedPath = thumbnailLarge || thumbnailMedium || thumbnailSmall || defaultThumbnail;
-      return getS3ImageUrl(selectedPath);
+      return thumbnailLarge || thumbnailMedium || thumbnailSmall || defaultThumbnail;
     } else if (width >= 768) {
       // 태블릿 (768px 이상) - Medium
-      const selectedPath = thumbnailMedium || thumbnailSmall || defaultThumbnail;
-      return getS3ImageUrl(selectedPath);
+      return thumbnailMedium || thumbnailSmall || defaultThumbnail;
     } else {
       // 모바일 (768px 미만) - Small
-      const selectedPath = thumbnailSmall || defaultThumbnail;
-      return getS3ImageUrl(selectedPath);
+      return thumbnailSmall || defaultThumbnail;
     }
   }
   
-  // 서버 사이드에서는 기본값 반환 (S3 URL로 변환)
-  return getS3ImageUrl(defaultThumbnail);
+  // 서버 사이드에서는 기본값 반환
+  return defaultThumbnail;
 }
 
 /**

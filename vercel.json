@@ -1,0 +1,25 @@
+{
+  "functions": {
+    "src/app/api/painting/upload/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/painting/upload-multi/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/drawing/upload/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/drawing/upload-multi/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/cv/upload-image/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/exhibitions/upload-photo/route.ts": {
+      "maxDuration": 30
+    },
+    "src/app/api/exhibitions/upload-photos-multi/route.ts": {
+      "maxDuration": 30
+    }
+  }
+}
