@@ -21,6 +21,8 @@ interface Artwork {
   thumbnailMedium: string;
   thumbnailLarge: string;
   uploadedAt: string;
+  number?: number;
+  createdAt: string;
 }
 
   // 3단계 썸네일 생성 함수
@@ -130,6 +132,106 @@ export default function AdminPaintingPage() {
   
   // 필터링 관련 상태
   const [selectedYear, setSelectedYear] = useState<string>('all');
+  
+  // 순서 편집 관련 상태
+  const [isReordering, setIsReordering] = useState(false);
+  const [reorderedArtworks, setReorderedArtworks] = useState<Artwork[]>([]);
+  const [originalOrder, setOriginalOrder] = useState<Artwork[]>([]);
+
+  // 순서 편집 관련 함수들
+  const handleStartReordering = () => {
+    setIsReordering(true);
+    setReorderedArtworks([...artworks]);
+    setOriginalOrder([...artworks]);
+  };
+
+  const handleCancelReordering = () => {
+    setIsReordering(false);
+    setReorderedArtworks([]);
+    setOriginalOrder([]);
+  };
+
+  const handleSaveReordering = async () => {
+    try {
+      // 연도별로 작품 그룹화
+      const artworksByYear: { [year: string]: Artwork[] } = {};
+      reorderedArtworks.forEach(artwork => {
+        const year = artwork.year;
+        if (!artworksByYear[year]) {
+          artworksByYear[year] = [];
+        }
+        artworksByYear[year].push(artwork);
+      });
+
+      // 각 연도별로 새로운 번호 할당
+      const artworksWithNewNumbers: { id: string; number: number }[] = [];
+      Object.keys(artworksByYear).forEach(year => {
+        artworksByYear[year].forEach((artwork, index) => {
+          artworksWithNewNumbers.push({
+            id: artwork.id,
+            number: index + 1
+          });
+        });
+      });
+
+      const response = await fetch('/api/painting/reorder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          artworks: artworksWithNewNumbers
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        alert('순서가 저장되었습니다.');
+        setIsReordering(false);
+        setReorderedArtworks([]);
+        setOriginalOrder([]);
+        fetchArtworks(); // 목록 새로고침
+      } else {
+        alert(`순서 저장 실패: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Reorder error:', error);
+      alert('순서 저장 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleMoveUp = (artworkId: string, year: string) => {
+    const yearArtworks = reorderedArtworks.filter(artwork => artwork.year === year);
+    const currentIndex = yearArtworks.findIndex(artwork => artwork.id === artworkId);
+    
+    if (currentIndex > 0) {
+      const newOrder = [...reorderedArtworks];
+      const artworkIndex = newOrder.findIndex(artwork => artwork.id === artworkId);
+      const prevArtworkIndex = newOrder.findIndex(artwork => artwork.id === yearArtworks[currentIndex - 1].id);
+      
+      // 순서 교체
+      [newOrder[artworkIndex], newOrder[prevArtworkIndex]] = [newOrder[prevArtworkIndex], newOrder[artworkIndex]];
+      
+      setReorderedArtworks(newOrder);
+    }
+  };
+
+  const handleMoveDown = (artworkId: string, year: string) => {
+    const yearArtworks = reorderedArtworks.filter(artwork => artwork.year === year);
+    const currentIndex = yearArtworks.findIndex(artwork => artwork.id === artworkId);
+    
+    if (currentIndex < yearArtworks.length - 1) {
+      const newOrder = [...reorderedArtworks];
+      const artworkIndex = newOrder.findIndex(artwork => artwork.id === artworkId);
+      const nextArtworkIndex = newOrder.findIndex(artwork => artwork.id === yearArtworks[currentIndex + 1].id);
+      
+      // 순서 교체
+      [newOrder[artworkIndex], newOrder[nextArtworkIndex]] = [newOrder[nextArtworkIndex], newOrder[artworkIndex]];
+      
+      setReorderedArtworks(newOrder);
+    }
+  };
 
   const getStatusClassName = (status: string) => {
     if (status.includes('성공')) {
@@ -631,8 +733,8 @@ export default function AdminPaintingPage() {
 
   // 필터링된 작품 목록
   const filteredArtworks = selectedYear === 'all' 
-    ? artworks 
-    : artworks.filter(artwork => artwork.year === selectedYear);
+    ? (isReordering ? reorderedArtworks : artworks)
+    : (isReordering ? reorderedArtworks : artworks).filter(artwork => artwork.year === selectedYear);
 
   // 연도별로 작품 그룹핑 (필터링된 작품 기준)
   const groupedArtworks = filteredArtworks.reduce((acc, artwork) => {
@@ -955,8 +1057,35 @@ export default function AdminPaintingPage() {
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-800">업로드된 Painting 작품 목록</h2>
             
-            {/* 연도 필터 */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-4">
+              {/* 순서 편집 버튼 */}
+              {!isReordering ? (
+                <button
+                  onClick={handleStartReordering}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm font-medium"
+                >
+                  순서 편집
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleSaveReordering}
+                    className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm font-medium"
+                  >
+                    저장
+                  </button>
+                  <button
+                    onClick={handleCancelReordering}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors text-sm font-medium"
+                  >
+                    취소
+                  </button>
+                </div>
+              )}
+            </div>
+              
+              {/* 연도 필터 */}
+              <div className="flex items-center gap-2">
               <label htmlFor="year-filter" className="text-sm font-medium text-gray-700">
                 연도별 필터:
               </label>
@@ -1004,6 +1133,41 @@ export default function AdminPaintingPage() {
                   key={artwork.id} 
                   className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
                 >
+                  {/* 작품 번호 표시 */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-bold">
+                        #{artwork.number || 'N/A'}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(artwork.createdAt).toLocaleDateString('ko-KR')}
+                      </span>
+                    </div>
+                    
+                    {/* 순서 편집 모드일 때 화살표 버튼 */}
+                    {isReordering && (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleMoveUp(artwork.id, artwork.year)}
+                          className="p-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-600 hover:text-gray-800 transition-colors"
+                          title="위로 이동"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleMoveDown(artwork.id, artwork.year)}
+                          className="p-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-600 hover:text-gray-800 transition-colors"
+                          title="아래로 이동"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   {editingArtwork?.id === artwork.id ? (
                     // 수정 모드
                     <div className="space-y-4">
@@ -1112,13 +1276,14 @@ export default function AdminPaintingPage() {
                       <div className="flex flex-row sm:flex-col gap-2 justify-center sm:justify-start">
                         <button
                           onClick={() => handleStartEdit(artwork)}
-                          className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 transition-all"
+                          disabled={isReordering}
+                          className="px-3 sm:px-4 py-2 bg-blue-600 text-white text-xs sm:text-sm rounded-md hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                         >
                           수정
                         </button>
                         <button
                           onClick={() => handleDeleteArtwork(artwork.id)}
-                          disabled={deletingId === artwork.id}
+                          disabled={deletingId === artwork.id || isReordering}
                           className="px-3 sm:px-4 py-2 bg-red-600 text-white text-xs sm:text-sm rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all"
                         >
                           {deletingId === artwork.id ? '삭제 중...' : '삭제'}

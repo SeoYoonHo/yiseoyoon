@@ -19,6 +19,7 @@ interface Work {
   thumbnailLarge: string;
   category: string;
   createdAt: string;
+  number?: number; // 번호 필드 추가
 }
 
 export default function PaintingPage() {
@@ -35,6 +36,7 @@ export default function PaintingPage() {
   const [activeYear, setActiveYear] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
   const [visibleImages, setVisibleImages] = useState<Set<string>>(new Set());
+  const [screenSize, setScreenSize] = useState<'mobile' | 'desktop'>('desktop');
   const imageRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
@@ -75,6 +77,18 @@ export default function PaintingPage() {
     }
   }, [isLoading, error]);
 
+  // 화면 크기 감지
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setScreenSize(window.innerWidth >= 1024 ? 'desktop' : 'mobile');
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
   // Intersection Observer로 이미지 애니메이션 처리
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -100,9 +114,13 @@ export default function PaintingPage() {
   }, [works]);
 
   const handleWorkClick = (work: Work) => {
+    // 현재 연도의 모든 작품을 가져와서 모달에 전달
+    const currentYearWorks = works.filter(w => w.year === work.year).sort((a, b) => (a.number || 0) - (b.number || 0));
+    const currentIndex = currentYearWorks.findIndex(w => w.id === work.id);
+    
     setSelectedWork({
-      images: [work.originalImage],
-      currentIndex: 0,
+      images: currentYearWorks.map(w => w.originalImage),
+      currentIndex: currentIndex,
       title: work.title,
       subtitle: work.year,
       description: work.description,
@@ -115,18 +133,30 @@ export default function PaintingPage() {
 
   const handlePrevImage = () => {
     if (selectedWork && selectedWork.currentIndex > 0) {
+      const currentYearWorks = works.filter(w => w.year === selectedWork.subtitle).sort((a, b) => (a.number || 0) - (b.number || 0));
+      const prevIndex = selectedWork.currentIndex - 1;
+      const prevWork = currentYearWorks[prevIndex];
+      
       setSelectedWork({
         ...selectedWork,
-        currentIndex: selectedWork.currentIndex - 1,
+        currentIndex: prevIndex,
+        title: prevWork.title,
+        description: prevWork.description,
       });
     }
   };
 
   const handleNextImage = () => {
     if (selectedWork && selectedWork.currentIndex < selectedWork.images.length - 1) {
+      const currentYearWorks = works.filter(w => w.year === selectedWork.subtitle).sort((a, b) => (a.number || 0) - (b.number || 0));
+      const nextIndex = selectedWork.currentIndex + 1;
+      const nextWork = currentYearWorks[nextIndex];
+      
       setSelectedWork({
         ...selectedWork,
-        currentIndex: selectedWork.currentIndex + 1,
+        currentIndex: nextIndex,
+        title: nextWork.title,
+        description: nextWork.description,
       });
     }
   };
@@ -203,7 +233,20 @@ export default function PaintingPage() {
                     {Array.from(new Set(works.map(work => work.year)))
                       .sort((a, b) => parseInt(b) - parseInt(a))
                       .map(year => {
-                        const yearWorks = works.filter(work => work.year === year);
+                        const yearWorks = works.filter(work => work.year === year)
+                          .sort((a, b) => (a.number || 0) - (b.number || 0)); // 번호 순서로 정렬
+                        
+                        // 각 열별로 작품 분배 (화면 크기에 따라 컬럼 수 결정)
+                        const cols = screenSize === 'desktop' ? 3 : 2;
+                        const columnWorks: Work[][] = Array.from({ length: cols }, () => []);
+                        
+                        // 각 작품을 열별로 분배 (number 값 기준)
+                        yearWorks.forEach((work) => {
+                          const positionInYear = work.number || 1; // number 값 기준 (1부터 시작)
+                          const colIndex = (positionInYear - 1) % cols; // 열 인덱스 (0, 1, 2)
+                          columnWorks[colIndex].push(work);
+                        });
+                        
                         return (
                           <div key={year} id={`year-${year}`} className="mb-12">
                             {/* 연도 헤더 */}
@@ -211,45 +254,49 @@ export default function PaintingPage() {
                               <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-2">{year}</h2>
                             </div>
                             
-                            {/* 작품 그리드 */}
-                            <div className="columns-2 gap-6 space-y-6">
-                              {yearWorks.map((work) => (
-                                <div 
-                                  key={work.id} 
-                                  className={`break-inside-avoid mb-6 transition-all duration-1000 ${
-                                    visibleImages.has(work.id)
-                                      ? 'opacity-100 scale-100' 
-                                      : 'opacity-0 scale-95'
-                                  }`}
-                                  ref={(el) => {
-                                    if (el) {
-                                      imageRefs.current.set(work.id, el);
-                                    }
-                                  }}
-                                  data-work-id={work.id}
-                                >
-                                  <div 
-                                    className="group cursor-pointer"
-                                    onClick={() => handleWorkClick(work)}
-                                  >
-                                    <div className="rounded-lg mb-4 overflow-hidden relative">
-                                      <Image
-                                        src={getS3ImageUrl(getResponsiveThumbnail(
-                                          work.thumbnailSmall,
-                                          work.thumbnailMedium,
-                                          work.thumbnailLarge,
-                                          work.thumbnailImage
-                                        ))}
-                                        alt={work.title}
-                                        width={400}
-                                        height={600}
-                                        className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
-                                        loading="lazy"
-                                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 50vw"
-                                      />
+                            {/* 작품 그리드 - 별도 컬럼 */}
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                              {columnWorks.map((column, colIndex) => (
+                                <div key={colIndex} className="space-y-6">
+                                  {column.map((work) => (
+                                    <div 
+                                      key={work.id} 
+                                      className={`transition-all duration-1000 ${
+                                        visibleImages.has(work.id)
+                                          ? 'opacity-100 scale-100' 
+                                          : 'opacity-0 scale-95'
+                                      }`}
+                                      ref={(el) => {
+                                        if (el) {
+                                          imageRefs.current.set(work.id, el);
+                                        }
+                                      }}
+                                      data-work-id={work.id}
+                                    >
+                                      <div 
+                                        className="group cursor-pointer"
+                                        onClick={() => handleWorkClick(work)}
+                                      >
+                                        <div className="rounded-lg mb-4 overflow-hidden relative">
+                                          <Image
+                                            src={getS3ImageUrl(getResponsiveThumbnail(
+                                              work.thumbnailSmall,
+                                              work.thumbnailMedium,
+                                              work.thumbnailLarge,
+                                              work.thumbnailImage
+                                            ))}
+                                            alt={work.title}
+                                            width={400}
+                                            height={600}
+                                            className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-300"
+                                            loading="lazy"
+                                            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 50vw, 33vw"
+                                          />
+                                        </div>
+                                        <h3 className="text-[10px] sm:text-xs md:text-sm font-normal text-gray-900 mb-2">{work.title}</h3>
+                                      </div>
                                     </div>
-                                    <h3 className="text-[10px] sm:text-xs md:text-sm font-normal text-gray-900 mb-2">{work.title}</h3>
-                                  </div>
+                                  ))}
                                 </div>
                               ))}
                             </div>

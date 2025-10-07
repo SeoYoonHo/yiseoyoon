@@ -33,6 +33,14 @@ export async function GET() {
 
       const artworks = JSON.parse(metadataContent);
 
+      // 번호 기준으로 정렬 (번호가 없는 경우 createdAt 기준으로 정렬)
+      artworks.sort((a: { number?: number; createdAt: string }, b: { number?: number; createdAt: string }) => {
+        if (a.number && b.number) {
+          return a.number - b.number;
+        }
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      });
+
       // 상대 경로를 전체 URL로 변환 (캐시 무효화를 위한 타임스탬프 추가)
       const timestamp = Date.now();
       const artworksWithUrls = artworks.map((artwork: { 

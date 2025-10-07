@@ -66,10 +66,34 @@ export async function POST(request: NextRequest) {
       existingMetadata.push(metadata);
     });
 
+    // 번호 재할당 (연도별로 처리)
+    const artworksByYear: { [year: string]: any[] } = {};
+    existingMetadata.forEach((artwork: any) => {
+      const year = artwork.year;
+      if (!artworksByYear[year]) {
+        artworksByYear[year] = [];
+      }
+      artworksByYear[year].push(artwork);
+    });
+
+    // 각 연도별로 번호 재할당
+    Object.keys(artworksByYear).forEach(year => {
+      artworksByYear[year].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      artworksByYear[year].forEach((artwork, index) => {
+        artwork.number = index + 1;
+      });
+    });
+
+    // 모든 작품을 다시 하나의 배열로 합치기
+    const updatedMetadata: any[] = [];
+    Object.keys(artworksByYear).forEach(year => {
+      updatedMetadata.push(...artworksByYear[year]);
+    });
+
     const putMetadataCommand = new PutObjectCommand({
       Bucket: BUCKET_NAME,
       Key: metadataKey,
-      Body: JSON.stringify(existingMetadata, null, 2),
+      Body: JSON.stringify(updatedMetadata, null, 2),
       ContentType: 'application/json',
     });
 
