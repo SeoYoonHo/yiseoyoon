@@ -55,18 +55,54 @@ export default function AdminTextPage() {
     setUploadStatus('업로드 중...');
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('title', metadata.title);
-
-      const response = await fetch('/api/text/upload', {
+      // 1. Presigned URL 요청
+      const presignedResponse = await fetch('/api/text/presigned-url', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          title: metadata.title,
+        }),
       });
 
-      const result = await response.json();
+      const presignedResult = await presignedResponse.json();
 
-      if (result.success) {
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
+      }
+
+      // 2. S3에 직접 업로드
+      const uploadResponse = await fetch(presignedResult.presignedUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('S3 업로드에 실패했습니다.');
+      }
+
+      // 3. 메타데이터 업데이트
+      const metadataResponse = await fetch('/api/text/update-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          textId: presignedResult.textId,
+          title: metadata.title,
+          s3Key: presignedResult.s3Key,
+        }),
+      });
+
+      const metadataResult = await metadataResponse.json();
+
+      if (metadataResult.success) {
         setUploadStatus('텍스트가 성공적으로 업로드되었습니다!');
         setSelectedFile(null);
         setMetadata({ title: '' });
@@ -80,7 +116,7 @@ export default function AdminTextPage() {
         // 텍스트 목록 새로고침
         fetchTexts();
       } else {
-        setUploadStatus(`업로드 실패: ${result.error}`);
+        setUploadStatus(`업로드 실패: ${metadataResult.error}`);
       }
     } catch (error) {
       console.error('Upload error:', error);

@@ -14,7 +14,7 @@ export async function DELETE(request: NextRequest) {
     const metadataKey = 'Text/metadata.json';
 
     // 1. metadata.json 가져오기
-    let metadata: Record<string, { pdfUrl: string; title: string; createdAt: string }> = {};
+    let metadata: { id: string; title: string; fileKey: string; createdAt: string }[] = [];
     try {
       const getMetadataCommand = new GetObjectCommand({
         Bucket: S3_BUCKET,
@@ -24,7 +24,8 @@ export async function DELETE(request: NextRequest) {
       const response = await s3Client.send(getMetadataCommand);
       const metadataBody = await response.Body?.transformToString();
       if (metadataBody) {
-        metadata = JSON.parse(metadataBody);
+        const parsed = JSON.parse(metadataBody);
+        metadata = Array.isArray(parsed) ? parsed : [];
       }
     } catch (error) {
       console.error('Failed to fetch metadata:', error);
@@ -32,16 +33,23 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 2. 텍스트 항목이 존재하는지 확인
-    if (!metadata[textId]) {
+    const textIndex = metadata.findIndex(item => item.id === textId);
+    if (textIndex === -1) {
       return NextResponse.json({ error: 'Text not found' }, { status: 404 });
     }
 
     // 3. PDF 파일 삭제
-    const textData = metadata[textId];
-    const pdfUrl = textData.pdfUrl;
+    const textData = metadata[textIndex];
+    const fileKey = textData.fileKey;
     
-    // S3 URL에서 키 추출
-    const pdfKey = pdfUrl.split('/').slice(-2).join('/'); // 'Text/filename.pdf'
+    // fileKey가 존재하는지 확인
+    if (!fileKey || typeof fileKey !== 'string') {
+      console.error('Invalid fileKey:', fileKey);
+      return NextResponse.json({ error: 'Invalid file key' }, { status: 400 });
+    }
+    
+    // S3 키 처리 (이미 상대경로 형태)
+    const pdfKey = fileKey.startsWith('Text/') ? fileKey : `Text/${fileKey}`;
     
     try {
       const deletePdfCommand = new DeleteObjectCommand({
@@ -56,7 +64,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // 4. 메타데이터에서 항목 제거
-    delete metadata[textId];
+    metadata.splice(textIndex, 1);
 
     // 5. 업데이트된 메타데이터를 S3에 업로드
     const uploadMetadataCommand = new PutObjectCommand({

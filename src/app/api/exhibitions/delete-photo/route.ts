@@ -48,15 +48,27 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Exhibition not found' }, { status: 404 });
     }
 
-    // S3에서 사진 삭제
+    // S3에서 사진 삭제 (썸네일 + 원본)
     try {
-      const deleteCommand = new DeleteObjectCommand({
+      // 썸네일 삭제
+      const deleteThumbnailCommand = new DeleteObjectCommand({
         Bucket: S3_BUCKET,
-        Key: photoKey,
+        Key: photoKey, // 썸네일 키
       });
-      await s3Client.send(deleteCommand);
+      await s3Client.send(deleteThumbnailCommand);
+      console.log('썸네일 삭제 완료:', photoKey);
+
+      // 원본 파일 키 생성 (Thumbnail을 Original로 변경)
+      const originalKey = photoKey.replace('/Thumbnail/', '/Original/');
+      const deleteOriginalCommand = new DeleteObjectCommand({
+        Bucket: S3_BUCKET,
+        Key: originalKey,
+      });
+      await s3Client.send(deleteOriginalCommand);
+      console.log('원본 삭제 완료:', originalKey);
+
     } catch (deleteError) {
-      console.error('Failed to delete photo from S3:', deleteError);
+      console.error('Failed to delete photos from S3:', deleteError);
     }
 
     // 메타데이터에서 사진 제거

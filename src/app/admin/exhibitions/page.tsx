@@ -180,6 +180,60 @@ export default function AdminExhibitionsPage() {
     }
   };
 
+  // 이미지를 썸네일로 리사이즈하는 함수
+  const resizeImageToThumbnail = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new window.Image();
+
+      img.onload = () => {
+        if (ctx) {
+          // 이미지 비율을 유지하면서 크기만 줄이기
+          const maxSize = 600;
+          
+          let { width, height } = img;
+          
+          // 비율을 유지하면서 최대 크기에 맞춤
+          if (width > maxSize || height > maxSize) {
+            const aspectRatio = width / height;
+            
+            if (width > height) {
+              width = maxSize;
+              height = width / aspectRatio;
+            } else {
+              height = maxSize;
+              width = height * aspectRatio;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // 이미지를 비율 유지하면서 그리기
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const thumbnailFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(thumbnailFile);
+            } else {
+              reject(new Error('Canvas to blob conversion failed'));
+            }
+          }, 'image/jpeg', 0.9);
+        } else {
+          reject(new Error('Canvas context not available'));
+        }
+      };
+
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   // 다중 사진 업로드
   const handleMultiPhotoUpload = async (exhibitionId: string) => {
     if (selectedFiles.length === 0) {
@@ -188,24 +242,123 @@ export default function AdminExhibitionsPage() {
     }
 
     setIsUploading(true);
-    setUploadStatus('업로드 중...');
-
-    const formData = new FormData();
-    selectedFiles.forEach(file => {
-      formData.append('files', file);
-    });
-    formData.append('exhibitionId', exhibitionId);
+    setUploadStatus('썸네일 생성 및 업로드 중...');
 
     try {
-      const response = await fetch('/api/exhibitions/upload-photos-multi', {
-        method: 'POST',
-        body: formData,
+      // 1. 썸네일 생성
+      console.log('Exhibition 썸네일 생성 시작');
+      const thumbnailPromises = selectedFiles.map(file => resizeImageToThumbnail(file));
+      const thumbnailFiles = await Promise.all(thumbnailPromises);
+      
+      console.log('Exhibition 썸네일 생성 완료:', {
+        originalCount: selectedFiles.length,
+        thumbnailCount: thumbnailFiles.length,
+        originalSizes: selectedFiles.map(f => f.size),
+        thumbnailSizes: thumbnailFiles.map(f => f.size)
       });
 
-      const result = await response.json();
+      // 2. Presigned URLs 요청
+      const files = selectedFiles.map(file => ({
+        name: file.name,
+        type: file.type,
+        size: file.size
+      }));
 
-      if (result.success) {
-        setUploadStatus(result.message);
+      console.log('Exhibition 업로드 시작:', { files, exhibitionId });
+
+      const presignedResponse = await fetch('/api/exhibitions/presigned-url-photos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          files,
+          exhibitionId,
+        }),
+      });
+
+      const presignedResult = await presignedResponse.json();
+      console.log('Presigned URL 응답:', presignedResult);
+
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
+      }
+
+      // 3. 각 파일을 S3에 직접 업로드 (원본 + 썸네일)
+      const uploadPromises = presignedResult.presignedUrls.map(async (presignedData: { originalPresignedUrl: string; thumbnailPresignedUrl: string; originalKey: string; thumbnailKey: string }, index: number) => {
+        const originalFile = selectedFiles[index];
+        const thumbnailFile = thumbnailFiles[index];
+        
+        console.log(`파일 ${index + 1} 업로드 시작:`, { 
+          fileName: originalFile.name, 
+          originalSize: originalFile.size,
+          thumbnailSize: thumbnailFile.size,
+          originalUrl: presignedData.originalPresignedUrl,
+          thumbnailUrl: presignedData.thumbnailPresignedUrl 
+        });
+        
+        // 원본 이미지 업로드
+        const originalUploadResponse = await fetch(presignedData.originalPresignedUrl, {
+          method: 'PUT',
+          body: originalFile,
+          headers: {
+            'Content-Type': originalFile.type,
+          },
+        });
+
+        console.log(`파일 ${index + 1} 원본 업로드 응답:`, { status: originalUploadResponse.status, ok: originalUploadResponse.ok });
+
+        if (!originalUploadResponse.ok) {
+          const errorText = await originalUploadResponse.text();
+          console.error(`파일 ${originalFile.name} 원본 업로드 실패:`, errorText);
+          throw new Error(`파일 ${originalFile.name} 원본 업로드 실패: ${originalUploadResponse.status} ${errorText}`);
+        }
+
+        // 썸네일 이미지 업로드 (Canvas로 생성된 썸네일 사용)
+        const thumbnailUploadResponse = await fetch(presignedData.thumbnailPresignedUrl, {
+          method: 'PUT',
+          body: thumbnailFile,
+          headers: {
+            'Content-Type': thumbnailFile.type,
+          },
+        });
+
+        console.log(`파일 ${index + 1} 썸네일 업로드 응답:`, { status: thumbnailUploadResponse.status, ok: thumbnailUploadResponse.ok });
+
+        if (!thumbnailUploadResponse.ok) {
+          const errorText = await thumbnailUploadResponse.text();
+          console.error(`파일 ${originalFile.name} 썸네일 업로드 실패:`, errorText);
+          throw new Error(`파일 ${originalFile.name} 썸네일 업로드 실패: ${thumbnailUploadResponse.status} ${errorText}`);
+        }
+
+        return {
+          s3Key: presignedData.originalKey,
+          thumbnailKey: presignedData.thumbnailKey,
+        };
+      });
+
+      const uploadedPhotos = await Promise.all(uploadPromises);
+      console.log('모든 파일 업로드 완료:', uploadedPhotos);
+
+      // 4. 메타데이터 업데이트
+      console.log('메타데이터 업데이트 요청:', { exhibitionId, photos: uploadedPhotos });
+      
+      const metadataResponse = await fetch('/api/exhibitions/update-photos-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          exhibitionId,
+          photos: uploadedPhotos,
+        }),
+      });
+
+      const metadataResult = await metadataResponse.json();
+      console.log('메타데이터 업데이트 응답:', metadataResult);
+
+      if (metadataResult.success) {
+        setUploadStatus(metadataResult.message);
         setSelectedFiles([]);
         setPreviewUrls([]);
         setSelectedExhibitionId(null);
@@ -214,8 +367,9 @@ export default function AdminExhibitionsPage() {
         }
         fetchExhibitions();
       } else {
-        setUploadStatus(`업로드 실패: ${result.error}`);
+        throw new Error(metadataResult.error);
       }
+
     } catch (error) {
       console.error('Upload error:', error);
       setUploadStatus('업로드 중 오류가 발생했습니다.');

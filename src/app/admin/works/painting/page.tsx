@@ -23,6 +23,76 @@ interface Artwork {
   uploadedAt: string;
 }
 
+  // 3단계 썸네일 생성 함수
+  const createThumbnails = (file: File): Promise<{ small: File; medium: File; large: File }> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new window.Image();
+
+      img.onload = () => {
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        // 썸네일 크기 정의
+        const sizes = {
+          small: { width: 300, height: 300 },
+          medium: { width: 500, height: 500 },
+          large: { width: 800, height: 800 }
+        };
+
+        const thumbnails: { small: File; medium: File; large: File } = {} as { small: File; medium: File; large: File };
+
+        // 각 크기별로 썸네일 생성
+        Object.entries(sizes).forEach(([size, dimensions]) => {
+          // 이미지 비율을 유지하면서 크기만 줄이기
+          let { width, height } = img;
+          
+          // 비율을 유지하면서 최대 크기에 맞춤
+          if (width > dimensions.width || height > dimensions.height) {
+            const aspectRatio = width / height;
+            
+            if (width > height) {
+              width = dimensions.width;
+              height = width / aspectRatio;
+            } else {
+              height = dimensions.height;
+              width = height * aspectRatio;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // 이미지를 비율 유지하면서 그리기
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const thumbnailFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              thumbnails[size as keyof typeof thumbnails] = thumbnailFile;
+              
+              // 모든 썸네일이 생성되었는지 확인
+              if (thumbnails.small && thumbnails.medium && thumbnails.large) {
+                resolve(thumbnails);
+              }
+            } else {
+              reject(new Error(`Canvas to blob conversion failed for ${size}`));
+            }
+          }, 'image/jpeg', 0.9);
+        });
+      };
+
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
 export default function AdminPaintingPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
@@ -150,23 +220,111 @@ export default function AdminPaintingPage() {
     }
 
     setIsUploading(true);
-    setUploadStatus('업로드 중...');
+    setUploadStatus('썸네일 생성 및 업로드 중...');
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('title', metadata.title);
-      formData.append('year', metadata.year);
-      formData.append('description', metadata.description);
-
-      const response = await fetch('/api/painting/upload', {
-        method: 'POST',
-        body: formData,
+      // 1. 3단계 썸네일 생성
+      const thumbnails = await createThumbnails(selectedFile);
+      console.log('Painting 썸네일 생성 완료:', {
+        originalSize: selectedFile.size,
+        smallSize: thumbnails.small.size,
+        mediumSize: thumbnails.medium.size,
+        largeSize: thumbnails.large.size
       });
 
-      const result = await response.json();
+      // 2. Presigned URL 요청
+      const presignedResponse = await fetch('/api/painting/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: selectedFile.name,
+          fileType: selectedFile.type,
+          title: metadata.title,
+          year: metadata.year,
+          description: metadata.description,
+        }),
+      });
 
-      if (result.success) {
+      const presignedResult = await presignedResponse.json();
+      console.log('Painting Presigned URL 응답:', presignedResult);
+
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
+      }
+
+      // 3. 원본 이미지 업로드
+      console.log('Painting 원본 S3 업로드 시작');
+      const originalUploadResponse = await fetch(presignedResult.originalPresignedUrl, {
+        method: 'PUT',
+        body: selectedFile,
+        headers: {
+          'Content-Type': selectedFile.type,
+        },
+      });
+
+      if (!originalUploadResponse.ok) {
+        const errorText = await originalUploadResponse.text();
+        console.error('Painting 원본 S3 업로드 실패:', errorText);
+        throw new Error(`원본 이미지 업로드에 실패했습니다: ${originalUploadResponse.status} ${errorText}`);
+      }
+
+      // 4. 썸네일 이미지들 업로드
+      console.log('Painting 썸네일 S3 업로드 시작');
+      
+      const thumbnailUploadPromises = [
+        fetch(presignedResult.thumbnailSmallPresignedUrl, {
+          method: 'PUT',
+          body: thumbnails.small,
+          headers: { 'Content-Type': thumbnails.small.type },
+        }),
+        fetch(presignedResult.thumbnailMediumPresignedUrl, {
+          method: 'PUT',
+          body: thumbnails.medium,
+          headers: { 'Content-Type': thumbnails.medium.type },
+        }),
+        fetch(presignedResult.thumbnailLargePresignedUrl, {
+          method: 'PUT',
+          body: thumbnails.large,
+          headers: { 'Content-Type': thumbnails.large.type },
+        })
+      ];
+
+      const thumbnailUploadResponses = await Promise.all(thumbnailUploadPromises);
+      
+      // 썸네일 업로드 결과 확인
+      for (let i = 0; i < thumbnailUploadResponses.length; i++) {
+        if (!thumbnailUploadResponses[i].ok) {
+          const errorText = await thumbnailUploadResponses[i].text();
+          console.error(`Painting 썸네일 ${i + 1} S3 업로드 실패:`, errorText);
+          throw new Error(`썸네일 ${i + 1} 업로드에 실패했습니다: ${thumbnailUploadResponses[i].status} ${errorText}`);
+        }
+      }
+
+      console.log('Painting 모든 이미지 업로드 완료');
+
+      // 5. 메타데이터 업데이트
+      const metadataResponse = await fetch('/api/painting/update-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          artworkId: presignedResult.artworkId,
+          title: metadata.title,
+          year: metadata.year,
+          description: metadata.description,
+          originalKey: presignedResult.originalKey,
+          thumbnailSmallKey: presignedResult.thumbnailSmallKey,
+          thumbnailMediumKey: presignedResult.thumbnailMediumKey,
+          thumbnailLargeKey: presignedResult.thumbnailLargeKey,
+        }),
+      });
+
+      const metadataResult = await metadataResponse.json();
+
+      if (metadataResult.success) {
         setUploadStatus('Painting 작품이 성공적으로 업로드되었습니다!');
         // 폼 초기화
         setSelectedFile(null);
@@ -178,10 +336,11 @@ export default function AdminPaintingPage() {
         // 작품 목록 새로고침
         fetchArtworks();
       } else {
-        setUploadStatus(`업로드 실패: ${result.error}`);
+        throw new Error(metadataResult.error);
       }
+
     } catch (error) {
-      setUploadStatus('업로드 중 오류가 발생했습니다.');
+      setUploadStatus(`업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       console.error('Upload error:', error);
     } finally {
       setIsUploading(false);
@@ -210,30 +369,130 @@ export default function AdminPaintingPage() {
     }
 
     setIsUploading(true);
-    setUploadStatus('업로드 중...');
+    setUploadStatus('썸네일 생성 및 업로드 중...');
 
     try {
-      const formData = new FormData();
+      // 1. 모든 파일에 대해 썸네일 생성
+      console.log('Painting 다중 썸네일 생성 시작');
+      const thumbnailPromises = selectedFiles.map(file => createThumbnails(file));
+      const thumbnailResults = await Promise.all(thumbnailPromises);
       
-      // 여러 파일 추가
-      selectedFiles.forEach(file => {
-        formData.append('files', file);
+      console.log('Painting 다중 썸네일 생성 완료:', {
+        originalCount: selectedFiles.length,
+        thumbnailCount: thumbnailResults.length,
+        originalSizes: selectedFiles.map(f => f.size),
+        thumbnailSizes: thumbnailResults.map(t => ({
+          small: t.small.size,
+          medium: t.medium.size,
+          large: t.large.size
+        }))
       });
-      
-      // 기본 메타데이터 추가
-      formData.append('defaultTitle', defaultMetadata.title);
-      formData.append('defaultYear', defaultMetadata.year);
-      formData.append('defaultDescription', defaultMetadata.description);
 
-      const response = await fetch('/api/painting/upload-multi', {
+      // 2. 각 파일에 대해 개별 Presigned URL 요청 및 업로드
+      const uploadPromises = selectedFiles.map(async (file, index) => {
+        const thumbnails = thumbnailResults[index];
+        
+        // Presigned URL 요청
+        const presignedResponse = await fetch('/api/painting/presigned-url', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            fileName: file.name,
+            fileType: file.type,
+            title: `${defaultMetadata.title} ${index + 1}`,
+            year: defaultMetadata.year,
+            description: defaultMetadata.description,
+          }),
+        });
+
+        const presignedResult = await presignedResponse.json();
+
+        if (!presignedResult.success) {
+          throw new Error(presignedResult.error);
+        }
+
+        console.log(`파일 ${index + 1} 업로드 시작:`, { 
+          fileName: file.name, 
+          originalSize: file.size,
+          thumbnailSizes: {
+            small: thumbnails.small.size,
+            medium: thumbnails.medium.size,
+            large: thumbnails.large.size
+          }
+        });
+        
+        // 원본 이미지 업로드
+        const originalUploadResponse = await fetch(presignedResult.originalPresignedUrl, {
+          method: 'PUT',
+          body: file,
+          headers: {
+            'Content-Type': file.type,
+          },
+        });
+
+        if (!originalUploadResponse.ok) {
+          throw new Error(`원본 이미지 업로드 실패: ${file.name}`);
+        }
+
+        // 썸네일 이미지들 업로드
+        const thumbnailUploadPromises = [
+          fetch(presignedResult.thumbnailSmallPresignedUrl, {
+            method: 'PUT',
+            body: thumbnails.small,
+            headers: { 'Content-Type': thumbnails.small.type },
+          }),
+          fetch(presignedResult.thumbnailMediumPresignedUrl, {
+            method: 'PUT',
+            body: thumbnails.medium,
+            headers: { 'Content-Type': thumbnails.medium.type },
+          }),
+          fetch(presignedResult.thumbnailLargePresignedUrl, {
+            method: 'PUT',
+            body: thumbnails.large,
+            headers: { 'Content-Type': thumbnails.large.type },
+          })
+        ];
+
+        const thumbnailUploadResponses = await Promise.all(thumbnailUploadPromises);
+
+        // 썸네일 업로드 결과 확인
+        for (let i = 0; i < thumbnailUploadResponses.length; i++) {
+          if (!thumbnailUploadResponses[i].ok) {
+            throw new Error(`썸네일 ${i + 1} 업로드 실패: ${file.name}`);
+          }
+        }
+
+        return {
+          artworkId: presignedResult.artworkId,
+          title: `${defaultMetadata.title} ${index + 1}`,
+          year: defaultMetadata.year,
+          description: defaultMetadata.description,
+          originalKey: presignedResult.originalKey,
+          thumbnailSmallKey: presignedResult.thumbnailSmallKey,
+          thumbnailMediumKey: presignedResult.thumbnailMediumKey,
+          thumbnailLargeKey: presignedResult.thumbnailLargeKey,
+        };
+      });
+
+      const uploadedArtworks = await Promise.all(uploadPromises);
+
+      // 3. 메타데이터 업데이트
+      const metadataResponse = await fetch('/api/painting/update-metadata-multi', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          artworks: uploadedArtworks,
+        }),
       });
 
-      const result = await response.json();
+      const metadataResult = await metadataResponse.json();
 
-      if (result.success) {
-        setUploadStatus(`${result.uploadedCount}개의 Painting 작품이 성공적으로 업로드되었습니다!`);
+      if (metadataResult.success) {
+        setUploadStatus(`${metadataResult.uploadedCount}개의 Painting 작품이 성공적으로 업로드되었습니다!`);
         // 폼 초기화
         setSelectedFiles([]);
         setPreviewUrls([]);
@@ -248,10 +507,11 @@ export default function AdminPaintingPage() {
         // 작품 목록 새로고침
         fetchArtworks();
       } else {
-        setUploadStatus(`업로드 실패: ${result.error}`);
+        throw new Error(metadataResult.error);
       }
+
     } catch (error) {
-      setUploadStatus('업로드 중 오류가 발생했습니다.');
+      setUploadStatus(`업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       console.error('Multi upload error:', error);
     } finally {
       setIsUploading(false);

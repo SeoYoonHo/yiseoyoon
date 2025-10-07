@@ -77,6 +77,67 @@ export default function AdminBackgroundsPage() {
     'image/tiff'
   ];
 
+  // 배경화면용 이미지 리사이징 함수 (비율 유지)
+  const resizeImageForBackground = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new window.Image();
+
+      img.onload = () => {
+        if (!ctx) {
+          reject(new Error('Canvas context not available'));
+          return;
+        }
+
+        // 배경화면용 최대 크기 (1920x1080, 16:9 비율 기준)
+        const maxWidth = 1920;
+        const maxHeight = 1080;
+
+        // 원본 비율 계산
+        const originalAspect = img.width / img.height;
+        const targetAspect = maxWidth / maxHeight;
+
+        let targetWidth = img.width;
+        let targetHeight = img.height;
+
+        // 원본이 더 크면 리사이징
+        if (img.width > maxWidth || img.height > maxHeight) {
+          if (originalAspect > targetAspect) {
+            // 가로가 더 긴 경우 - 가로를 기준으로 리사이징
+            targetWidth = maxWidth;
+            targetHeight = maxWidth / originalAspect;
+          } else {
+            // 세로가 더 긴 경우 - 세로를 기준으로 리사이징
+            targetHeight = maxHeight;
+            targetWidth = maxHeight * originalAspect;
+          }
+        }
+
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
+
+        // 이미지 그리기 (비율 유지)
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
+
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const resizedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(resizedFile);
+          } else {
+            reject(new Error('Canvas to blob conversion failed'));
+          }
+        }, 'image/jpeg', 0.85); // 배경화면용으로 품질을 조금 낮춤
+      };
+
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
@@ -97,35 +158,63 @@ export default function AdminBackgroundsPage() {
     }
 
     setIsUploading(true);
-    setUploadStatus('업로드 중...');
+    setUploadStatus('배경화면 리사이징 및 업로드 중...');
 
     try {
-      const formData = new FormData();
-      formData.append('file', selectedFile);
-      formData.append('folder', `${backgroundTabs.find(tab => tab.id === selectedTab)?.folder || 'Home'}/Background`);
-
-      const response = await fetch('/api/upload', {
+      const folder = backgroundTabs.find(tab => tab.id === selectedTab)?.folder || 'Home';
+      
+      // 1. 배경화면용 리사이징
+      const resizedFile = await resizeImageForBackground(selectedFile);
+      console.log('배경화면 리사이징 완료:', {
+        originalSize: selectedFile.size,
+        resizedSize: resizedFile.size,
+        originalName: selectedFile.name,
+        resizedName: resizedFile.name
+      });
+      
+      // 2. Presigned URL 요청
+      const presignedResponse = await fetch('/api/background/presigned-url', {
         method: 'POST',
-        body: formData,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: resizedFile.name,
+          fileType: resizedFile.type,
+          folder,
+        }),
       });
 
-      const result = await response.json();
+      const presignedResult = await presignedResponse.json();
 
-      if (result.success) {
-        setUploadStatus(`${selectedTab} 배경화면이 성공적으로 업로드되었습니다!`);
-        setSelectedFile(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
-        // 업로드 성공 후 현재 배경 이미지 새로고침
-        const folder = backgroundTabs.find(tab => tab.id === selectedTab)?.folder || 'Home';
-        const refreshResponse = await fetch(`/api/background?folder=${folder}&v=${Date.now()}`);
-        const refreshData = await refreshResponse.json();
-        if (refreshData.success && refreshData.imageUrl) {
-          setCurrentBackgroundUrl(refreshData.imageUrl);
-        }
-      } else {
-        setUploadStatus(`업로드 실패: ${result.error}`);
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
+      }
+
+      // 3. S3에 리사이징된 이미지 업로드
+      const uploadResponse = await fetch(presignedResult.presignedUrl, {
+        method: 'PUT',
+        body: resizedFile,
+        headers: {
+          'Content-Type': resizedFile.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('S3 업로드에 실패했습니다.');
+      }
+
+      setUploadStatus(`${selectedTab} 배경화면이 성공적으로 업로드되었습니다!`);
+      setSelectedFile(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // 업로드 성공 후 현재 배경 이미지 새로고침
+      const refreshResponse = await fetch(`/api/background?folder=${folder}&v=${Date.now()}`);
+      const refreshData = await refreshResponse.json();
+      if (refreshData.success && refreshData.imageUrl) {
+        setCurrentBackgroundUrl(refreshData.imageUrl);
       }
     } catch (error) {
       setUploadStatus('업로드 중 오류가 발생했습니다.');

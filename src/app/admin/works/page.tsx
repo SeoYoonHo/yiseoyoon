@@ -70,6 +70,61 @@ export default function AdminWorksPage() {
     }
   };
 
+  // 이미지를 썸네일로 리사이즈하는 함수
+  const resizeImageToThumbnail = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new window.Image();
+      
+      img.onload = () => {
+        if (ctx) {
+          // 이미지 비율을 유지하면서 크기만 줄이기
+          const maxWidth = 600;
+          const maxHeight = 800;
+          
+          let { width, height } = img;
+          
+          // 비율을 유지하면서 최대 크기에 맞춤
+          if (width > maxWidth || height > maxHeight) {
+            const aspectRatio = width / height;
+            
+            if (width > height) {
+              width = maxWidth;
+              height = width / aspectRatio;
+            } else {
+              height = maxHeight;
+              width = height * aspectRatio;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          // 이미지를 비율 유지하면서 그리기
+          ctx.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob((blob) => {
+            if (blob) {
+              const resizedFile = new File([blob], file.name, {
+                type: 'image/jpeg',
+                lastModified: Date.now(),
+              });
+              resolve(resizedFile);
+            } else {
+              reject(new Error('Canvas to blob conversion failed'));
+            }
+          }, 'image/jpeg', 0.9);
+        } else {
+          reject(new Error('Canvas context not available'));
+        }
+      };
+      
+      img.onerror = () => reject(new Error('Image loading failed'));
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handlePaintingUpload = async () => {
     if (!selectedPaintingFile) {
       setUploadStatus('Painting 파일을 선택해주세요.');
@@ -77,35 +132,62 @@ export default function AdminWorksPage() {
     }
 
     setIsUploadingPainting(true);
-    setUploadStatus('Painting 업로드 중...');
+    setUploadStatus('Painting 썸네일 생성 및 업로드 중...');
 
     try {
-      const formData = new FormData();
-      formData.append('paintingFile', selectedPaintingFile);
-      formData.append('type', 'Painting');
-
-      const response = await fetch('/api/works/card-images/upload', {
-        method: 'POST',
-        body: formData,
+      // 1. 이미지를 썸네일로 리사이즈
+      const thumbnailFile = await resizeImageToThumbnail(selectedPaintingFile);
+      console.log('Painting 썸네일 생성 완료:', {
+        originalSize: selectedPaintingFile.size,
+        thumbnailSize: thumbnailFile.size,
+        originalName: selectedPaintingFile.name,
+        thumbnailName: thumbnailFile.name
       });
 
-      const result = await response.json();
+      // 2. Presigned URL 요청
+      const presignedResponse = await fetch('/api/works/card-images/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: thumbnailFile.name,
+          fileType: thumbnailFile.type,
+          type: 'Painting',
+        }),
+      });
 
-      if (result.success) {
-        setUploadStatus('Painting 카드 이미지가 성공적으로 업로드되었습니다!');
-        // 폼 초기화
-        setSelectedPaintingFile(null);
-        setPaintingPreviewUrl('');
-        if (paintingFileInputRef.current) {
-          paintingFileInputRef.current.value = '';
-        }
-        // 카드 이미지 새로고침
-        fetchCardImages();
-      } else {
-        setUploadStatus(`Painting 업로드 실패: ${result.error}`);
+      const presignedResult = await presignedResponse.json();
+
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
       }
+
+      // 3. S3에 썸네일 업로드
+      const uploadResponse = await fetch(presignedResult.presignedUrl, {
+        method: 'PUT',
+        body: thumbnailFile,
+        headers: {
+          'Content-Type': thumbnailFile.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('S3 업로드에 실패했습니다.');
+      }
+
+      setUploadStatus('Painting 카드 이미지가 성공적으로 업로드되었습니다!');
+      // 폼 초기화
+      setSelectedPaintingFile(null);
+      setPaintingPreviewUrl('');
+      if (paintingFileInputRef.current) {
+        paintingFileInputRef.current.value = '';
+      }
+      // 카드 이미지 새로고침
+      fetchCardImages();
+
     } catch (error) {
-      setUploadStatus('Painting 업로드 중 오류가 발생했습니다.');
+      setUploadStatus(`업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       console.error('Upload error:', error);
     } finally {
       setIsUploadingPainting(false);
@@ -119,35 +201,62 @@ export default function AdminWorksPage() {
     }
 
     setIsUploadingDrawing(true);
-    setUploadStatus('Drawing 업로드 중...');
+    setUploadStatus('Drawing 썸네일 생성 및 업로드 중...');
 
     try {
-      const formData = new FormData();
-      formData.append('drawingFile', selectedDrawingFile);
-      formData.append('type', 'Drawing');
-
-      const response = await fetch('/api/works/card-images/upload', {
-        method: 'POST',
-        body: formData,
+      // 1. 이미지를 썸네일로 리사이즈
+      const thumbnailFile = await resizeImageToThumbnail(selectedDrawingFile);
+      console.log('Drawing 썸네일 생성 완료:', {
+        originalSize: selectedDrawingFile.size,
+        thumbnailSize: thumbnailFile.size,
+        originalName: selectedDrawingFile.name,
+        thumbnailName: thumbnailFile.name
       });
 
-      const result = await response.json();
+      // 2. Presigned URL 요청
+      const presignedResponse = await fetch('/api/works/card-images/presigned-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fileName: thumbnailFile.name,
+          fileType: thumbnailFile.type,
+          type: 'Drawing',
+        }),
+      });
 
-      if (result.success) {
-        setUploadStatus('Drawing 카드 이미지가 성공적으로 업로드되었습니다!');
-        // 폼 초기화
-        setSelectedDrawingFile(null);
-        setDrawingPreviewUrl('');
-        if (drawingFileInputRef.current) {
-          drawingFileInputRef.current.value = '';
-        }
-        // 카드 이미지 새로고침
-        fetchCardImages();
-      } else {
-        setUploadStatus(`Drawing 업로드 실패: ${result.error}`);
+      const presignedResult = await presignedResponse.json();
+
+      if (!presignedResult.success) {
+        throw new Error(presignedResult.error);
       }
+
+      // 3. S3에 썸네일 업로드
+      const uploadResponse = await fetch(presignedResult.presignedUrl, {
+        method: 'PUT',
+        body: thumbnailFile,
+        headers: {
+          'Content-Type': thumbnailFile.type,
+        },
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error('S3 업로드에 실패했습니다.');
+      }
+
+      setUploadStatus('Drawing 카드 이미지가 성공적으로 업로드되었습니다!');
+      // 폼 초기화
+      setSelectedDrawingFile(null);
+      setDrawingPreviewUrl('');
+      if (drawingFileInputRef.current) {
+        drawingFileInputRef.current.value = '';
+      }
+      // 카드 이미지 새로고침
+      fetchCardImages();
+
     } catch (error) {
-      setUploadStatus('Drawing 업로드 중 오류가 발생했습니다.');
+      setUploadStatus(`업로드 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
       console.error('Upload error:', error);
     } finally {
       setIsUploadingDrawing(false);

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import ContentTransition from '@/components/ContentTransition';
 import ImageModal from '@/components/ImageModal';
 import { getResponsiveThumbnail } from '@/lib/thumbnail';
+import { getS3ImageUrl } from '@/lib/s3';
 
 interface Work {
   id: string;
@@ -233,12 +234,12 @@ export default function DrawingPage() {
                                   >
                                     <div className="rounded-lg mb-4 overflow-hidden relative">
                                       <Image
-                                        src={getResponsiveThumbnail(
+                                        src={getS3ImageUrl(getResponsiveThumbnail(
                                           work.thumbnailSmall,
                                           work.thumbnailMedium,
                                           work.thumbnailLarge,
                                           work.thumbnailImage
-                                        )}
+                                        ))}
                                         alt={work.title}
                                         width={400}
                                         height={600}

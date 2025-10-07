@@ -40,13 +40,13 @@ export async function GET() {
       const exhibitions = Object.values(metadata)
         .map((exhibition) => ({
           ...exhibition,
-          // S3 키를 전체 URL로 변환 (이미 URL인 경우는 그대로 사용)
+          // S3 키를 전체 URL로 변환 (썸네일 키 저장되어 있음, 모달에서 Original로 변환)
           photos: exhibition.photos.map((photoKey) => {
             // 이미 완전한 URL인 경우 그대로 반환
             if (photoKey.startsWith('http')) {
               return photoKey;
             }
-            // S3 키인 경우 URL로 변환
+            // S3 키인 경우 URL로 변환 (썸네일 경로 그대로 사용)
             return getS3ImageUrl(photoKey);
           }),
         }))
