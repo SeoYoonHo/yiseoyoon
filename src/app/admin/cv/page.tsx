@@ -18,6 +18,11 @@ export default function AdminCVPage() {
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [deletingImageUrl, setDeletingImageUrl] = useState<string | null>(null);
   
+  // 순서 변경 관련 상태
+  const [isReordering, setIsReordering] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
+  const [originalImages, setOriginalImages] = useState<string[]>([]);
+  
   // Form states
   const [name, setName] = useState('');
   const [leftText, setLeftText] = useState('');
@@ -168,6 +173,71 @@ export default function AdminCVPage() {
     }
   };
 
+  // 순서 변경 시작
+  const startReorder = () => {
+    if (cvData?.images && cvData.images.length > 1) {
+      setOriginalImages([...cvData.images]);
+      setIsReordering(true);
+      setSelectedImageIndex(null);
+    }
+  };
+
+  // 순서 변경 취소
+  const cancelReorder = () => {
+    if (cvData && originalImages.length > 0) {
+      setCvData({ ...cvData, images: [...originalImages] });
+    }
+    setIsReordering(false);
+    setSelectedImageIndex(null);
+  };
+
+  // 이미지 순서 이동
+  const moveImage = (fromIndex: number, direction: 'left' | 'right') => {
+    if (!cvData) return;
+
+    const newImages = [...cvData.images];
+    const toIndex = direction === 'left' ? fromIndex - 1 : fromIndex + 1;
+
+    if (toIndex >= 0 && toIndex < newImages.length) {
+      [newImages[fromIndex], newImages[toIndex]] = [newImages[toIndex], newImages[fromIndex]];
+      setCvData({ ...cvData, images: newImages });
+    }
+  };
+
+  // 이미지 순서를 서버에 저장
+  const saveImageOrder = async () => {
+    if (!cvData) return;
+
+    try {
+      const response = await fetch('/api/cv/update', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: cvData.name,
+          leftText: cvData.leftText,
+          rightText: cvData.rightText,
+          images: cvData.images,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setUploadStatus('이미지 순서가 성공적으로 저장되었습니다!');
+        setIsReordering(false);
+        setSelectedImageIndex(null);
+        await fetchCVData(); // 데이터 새로고침
+      } else {
+        setUploadStatus(`순서 저장 실패: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Error saving image order:', error);
+      setUploadStatus('순서 저장 중 오류가 발생했습니다.');
+    }
+  };
+
   if (isLoading) {
     return null;
   }
@@ -281,7 +351,36 @@ export default function AdminCVPage() {
 
         {/* 업로드된 이미지 목록 섹션 */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">업로드된 포스터 이미지</h2>
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 gap-2">
+            <h2 className="text-xl font-semibold text-gray-800">업로드된 포스터 이미지</h2>
+            {cvData?.images && cvData.images.length > 1 && (
+              <div className="flex gap-2 justify-center sm:justify-end">
+                {isReordering ? (
+                  <>
+                    <button
+                      onClick={cancelReorder}
+                      className="px-3 py-1 bg-gray-500 text-white text-xs rounded hover:bg-gray-600 transition-all"
+                    >
+                      취소
+                    </button>
+                    <button
+                      onClick={saveImageOrder}
+                      className="px-3 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-all"
+                    >
+                      완료
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    onClick={startReorder}
+                    className="px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-all"
+                  >
+                    순서 변경
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
           {cvData?.images && cvData.images.length === 0 && (
             <p className="text-gray-500">아직 업로드된 이미지가 없습니다.</p>
           )}
@@ -289,7 +388,11 @@ export default function AdminCVPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {cvData.images.map((imageUrl, index) => (
                 <div key={index} className="relative group">
-                  <div className="relative aspect-[3/4] rounded-lg overflow-hidden shadow-md">
+                  <div className={`relative aspect-[3/4] rounded-lg overflow-hidden shadow-md ${
+                    isReordering && selectedImageIndex === index
+                      ? 'ring-2 ring-blue-500'
+                      : ''
+                  }`}>
                     <Image
                       src={imageUrl}
                       alt={`CV Poster ${index + 1}`}
@@ -297,21 +400,65 @@ export default function AdminCVPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-300"
                       sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
-                    {/* 삭제 버튼 */}
-                    <button
-                      onClick={() => handleDeleteImage(imageUrl)}
-                      disabled={deletingImageUrl === imageUrl}
-                      className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      aria-label={`Delete image ${index + 1}`}
-                    >
-                      {deletingImageUrl === imageUrl ? (
-                        <span className="text-xs">삭제 중...</span>
-                      ) : (
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      )}
-                    </button>
+                    
+                    {/* 순서 변경 모드에서 이미지 선택 */}
+                    {isReordering && (
+                      <button
+                        onClick={() => setSelectedImageIndex(selectedImageIndex === index ? null : index)}
+                        className={`absolute inset-0 flex items-center justify-center ${
+                          selectedImageIndex === index
+                            ? 'bg-blue-500/50'
+                            : 'bg-black/0 hover:bg-black/20'
+                        } transition-all`}
+                      >
+                        {selectedImageIndex === index && (
+                          <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-medium">
+                            선택됨
+                          </div>
+                        )}
+                      </button>
+                    )}
+                    
+                    {/* 순서 변경 버튼들 */}
+                    {isReordering && selectedImageIndex === index && (
+                      <div className="absolute inset-0 flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => moveImage(index, 'left')}
+                          disabled={index === 0}
+                          className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        >
+                          ←
+                        </button>
+                        <button
+                          onClick={() => moveImage(index, 'right')}
+                          disabled={index === cvData.images.length - 1}
+                          className="w-8 h-8 bg-white/90 hover:bg-white text-gray-700 rounded-full flex items-center justify-center text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                        >
+                          →
+                        </button>
+                      </div>
+                    )}
+                    
+                    {/* 삭제 버튼 - 순서 변경 모드가 아닐 때만 표시 */}
+                    {!isReordering && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteImage(imageUrl);
+                        }}
+                        disabled={deletingImageUrl === imageUrl}
+                        className="absolute top-2 right-2 w-8 h-8 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        aria-label={`Delete image ${index + 1}`}
+                      >
+                        {deletingImageUrl === imageUrl ? (
+                          <span className="text-xs">삭제 중...</span>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        )}
+                      </button>
+                    )}
                   </div>
                   <p className="mt-2 text-sm text-gray-600 text-center">Poster {index + 1}</p>
                 </div>

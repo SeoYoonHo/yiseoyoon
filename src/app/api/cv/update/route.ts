@@ -4,7 +4,7 @@ import { s3Client, S3_BUCKET } from '@/lib/s3';
 
 export async function PUT(request: NextRequest) {
   try {
-    const { name, leftText, rightText } = await request.json();
+    const { name, leftText, rightText, images } = await request.json();
 
     if (!name) {
       return NextResponse.json({ error: 'Name is required' }, { status: 400 });
@@ -70,6 +70,10 @@ export async function PUT(request: NextRequest) {
     metadata.name = name;
     metadata.leftText = leftText || '';
     metadata.rightText = rightText || '';
+    // images 배열이 제공된 경우에만 업데이트
+    if (images !== undefined) {
+      metadata.images = images;
+    }
     metadata.updatedAt = new Date().toISOString();
 
     // 업데이트된 메타데이터를 S3에 업로드
@@ -83,7 +87,7 @@ export async function PUT(request: NextRequest) {
 
     await s3Client.send(uploadMetadataCommand);
 
-    console.log('CV updated successfully:', { name, leftText, rightText });
+    console.log('CV updated successfully:', { name, leftText, rightText, imagesCount: metadata.images.length });
 
     return NextResponse.json({
       success: true,

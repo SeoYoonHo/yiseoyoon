@@ -63,7 +63,12 @@ export async function GET(request: NextRequest) {
       }
 
       // 이미지 URL들을 완전한 S3 URL로 변환
-      const images = (metadata.images || []).map((imageKey: string) => getS3ImageUrl(imageKey));
+      const images = (metadata.images || []).map((imageKey: string) => {
+        if (imageKey.startsWith('http')) {
+          return imageKey;
+        }
+        return getS3ImageUrl(imageKey);
+      });
 
       return NextResponse.json({
         success: true,
