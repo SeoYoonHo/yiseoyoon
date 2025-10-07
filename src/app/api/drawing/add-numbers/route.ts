@@ -35,7 +35,7 @@ export async function POST(request: NextRequest) {
     artworks.sort((a: { createdAt: string }, b: { createdAt: string }) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
     // 번호 추가
-    artworks.forEach((artwork, index) => {
+    artworks.forEach((artwork: any, index: number) => {
       artwork.number = index + 1;
     });
 

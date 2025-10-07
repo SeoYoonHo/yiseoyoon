@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
 
     // 연도별로 번호 재할당
     const artworksByYear: { [year: string]: any[] } = {};
-    existingMetadata.forEach(artwork => {
+    existingMetadata.forEach((artwork: any) => {
       const year = artwork.year;
       if (!artworksByYear[year]) {
         artworksByYear[year] = [];

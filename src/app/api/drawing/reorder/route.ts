@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const updatedMetadata = [...existingMetadata];
     
     // 각 작품의 새로운 번호 적용
-    artworks.forEach(({ id, number }) => {
+    artworks.forEach(({ id, number }: { id: string; number: number }) => {
       const artworkIndex = updatedMetadata.findIndex(artwork => artwork.id === id);
       if (artworkIndex !== -1) {
         updatedMetadata[artworkIndex].number = number;
@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // 연도별로 번호 재할당 (연속된 번호 보장)
     const artworksByYear: { [year: string]: any[] } = {};
-    updatedMetadata.forEach(artwork => {
+    updatedMetadata.forEach((artwork: any) => {
       const year = artwork.year;
       if (!artworksByYear[year]) {
         artworksByYear[year] = [];
@@ -68,10 +68,10 @@ export async function POST(request: NextRequest) {
     // 각 연도별로 번호 재할당 (클라이언트 순서 유지)
     Object.keys(artworksByYear).forEach(year => {
       // 연도 내에서 number 기준으로 정렬 (클라이언트에서 보낸 순서 유지)
-      artworksByYear[year].sort((a, b) => (a.number || 0) - (b.number || 0));
+      artworksByYear[year].sort((a: any, b: any) => (a.number || 0) - (b.number || 0));
       
       // 연도별로 1부터 시작하는 연속된 number 할당
-      artworksByYear[year].forEach((artwork, index) => {
+      artworksByYear[year].forEach((artwork: any, index: number) => {
         artwork.number = index + 1;
       });
     });

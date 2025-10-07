@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
 
     // 연도별로 그룹핑
     const artworksByYear: { [year: string]: any[] } = {};
-    artworks.forEach(artwork => {
+    artworks.forEach((artwork: any) => {
       const year = artwork.year;
       if (!artworksByYear[year]) {
         artworksByYear[year] = [];
@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
     // 각 연도별로 number 재할당
     Object.keys(artworksByYear).forEach(year => {
       // 연도 내에서 createdAt 기준으로 정렬
-      artworksByYear[year].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      artworksByYear[year].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       
       // 연도별로 1부터 시작하는 number 할당
-      artworksByYear[year].forEach((artwork, index) => {
+      artworksByYear[year].forEach((artwork: any, index: number) => {
         artwork.number = index + 1;
       });
     });
