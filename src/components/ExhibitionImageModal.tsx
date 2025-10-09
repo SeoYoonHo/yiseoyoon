@@ -140,11 +140,8 @@ export default function ExhibitionImageModal({
       </button>
 
       {/* 이미지 영역 */}
-      <div 
-        className="relative w-full h-full flex items-center justify-center px-24 py-16"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="relative w-full h-full max-w-7xl max-h-[80vh]">
+      <div className="flex flex-col items-center justify-center h-full px-4 sm:px-8 md:px-24 py-8 sm:py-12 md:py-16">
+        <div className="relative max-w-7xl flex items-center justify-center">
           <div 
             className={`relative w-full h-full transition-opacity duration-200 ease-in-out ${
               imageLoaded ? 'opacity-100' : 'opacity-0'
@@ -154,13 +151,25 @@ export default function ExhibitionImageModal({
               key={`image-${currentImageIndex}`}
               src={getOriginalImageUrl(photos[currentImageIndex])}
               alt={`${title} - ${currentImageIndex + 1}/${photos.length}`}
-              fill
-              className="object-contain"
+              width={1400}
+              height={900}
+              className="max-w-full max-h-[80vh] w-auto h-auto object-contain"
               sizes="(max-width: 1536px) 90vw, 1400px"
               priority
             />
           </div>
         </div>
+
+        {/* 사진 번호 표시 */}
+        {photos.length > 1 && (
+          <div className="w-full max-w-4xl mt-8 sm:mt-12 px-4">
+            <div className="text-center">
+              <span className="inline-block bg-gray-200 text-gray-700 px-3 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm">
+                {currentImageIndex + 1} / {photos.length}
+              </span>
+            </div>
+          </div>
+        )}
 
         {/* 이전 버튼 */}
         {photos.length > 1 && currentIndex > 0 && onPrev && (
@@ -169,10 +178,10 @@ export default function ExhibitionImageModal({
               e.stopPropagation();
               onPrev();
             }}
-            className="absolute left-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
+            className="absolute left-2 sm:left-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
             aria-label="Previous photo"
           >
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
@@ -185,22 +194,15 @@ export default function ExhibitionImageModal({
               e.stopPropagation();
               onNext();
             }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 z-10 w-14 h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
+            className="absolute right-2 sm:right-8 top-1/2 -translate-y-1/2 z-10 w-10 h-10 sm:w-14 sm:h-14 flex items-center justify-center text-gray-700 hover:text-gray-900 transition-all cursor-pointer"
             aria-label="Next photo"
           >
-            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg className="w-5 h-5 sm:w-8 sm:h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
         )}
       </div>
-
-      {/* 사진 번호 표시 */}
-      {photos.length > 1 && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-700 text-sm">
-          {currentImageIndex + 1} / {photos.length}
-        </div>
-      )}
     </div>,
     document.body
   );
