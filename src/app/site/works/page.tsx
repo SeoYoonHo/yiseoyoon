@@ -76,14 +76,12 @@ export default function WorksPage() {
             <div className="w-full mx-auto">
               <div 
                 className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8 w-[90%] mx-auto"
-                style={{ maxHeight: '80vh' }}
               >
                 {/* Painting */}
-                <div ref={paintingRef} data-type="painting">
+                <div ref={paintingRef} data-type="painting" className="flex justify-end">
                   <Link
                     href="/site/works/painting"
-                    className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full"
-                    style={{ maxHeight: '80vh', maxWidth: 'calc(80vh * 3 / 4)' }}
+                    className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full md:max-w-md"
                   >
                     <div className="aspect-[3/4] relative">
                       {cardImages.painting ? (
@@ -112,11 +110,10 @@ export default function WorksPage() {
                 </div>
 
                 {/* Drawing */}
-                <div ref={drawingRef} data-type="drawing">
+                <div ref={drawingRef} data-type="drawing" className="flex justify-start">
                   <Link
                     href="/site/works/drawing"
-                    className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full"
-                    style={{ maxHeight: '80vh', maxWidth: 'calc(80vh * 3 / 4)' }}
+                    className="group relative bg-white/10 backdrop-blur-sm rounded-lg overflow-hidden hover:bg-white/20 transition-all duration-300 w-full md:max-w-md"
                   >
                     <div className="aspect-[3/4] relative">
                       {cardImages.drawing ? (
